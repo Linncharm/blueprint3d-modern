@@ -4,6 +4,7 @@ import { Corner } from '../model/corner';
 import { Room } from '../model/room';
 import { HalfEdge } from '../model/half_edge';
 import { Dimensioning } from '../core/dimensioning';
+import { Utils } from '../core/utils';
 import type { Floorplanner } from './floorplanner';
 
 /** */
@@ -178,10 +179,10 @@ export class FloorplannerView {
 
     var scope = this;
     this.drawPolygon(
-      Core.Utils.map(corners, function (corner) {
+      Utils.map(corners, function (corner) {
         return scope.viewmodel.convertX(corner.x);
       }),
-      Core.Utils.map(corners, function (corner) {
+      Utils.map(corners, function (corner) {
         return scope.viewmodel.convertY(corner.y);
       }),
       false,
@@ -196,10 +197,10 @@ export class FloorplannerView {
   private drawRoom(room: Room) {
     var scope = this;
     this.drawPolygon(
-      Core.Utils.map(room.corners, (corner: Corner) => {
+      Utils.map(room.corners, (corner: Corner) => {
         return scope.viewmodel.convertX(corner.x);
       }),
-      Core.Utils.map(room.corners, (corner: Corner) =>  {
+      Utils.map(room.corners, (corner: Corner) =>  {
         return scope.viewmodel.convertY(corner.y);
       }),
       true,

@@ -222,17 +222,24 @@
       </div>
     </div>
 
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
     <script type="module">
       import { initItems } from './js/items-es6.js';
       import { initBlueprint3d } from './js/example-es6.js';
 
       // Initialize when DOM is ready
-      document.addEventListener('DOMContentLoaded', () => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          initItems();
+          initBlueprint3d();
+        });
+      } else {
+        // DOM already loaded
         initItems();
         initBlueprint3d();
-      });
+      }
     </script>
-    <script src="js/bootstrap.js"></script>
 
   </body>
 </html>
