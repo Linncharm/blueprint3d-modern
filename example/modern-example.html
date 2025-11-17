@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blueprint3D - Modern Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+    }
+
+    #sidebar {
+      width: 300px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    #viewer-container {
+      flex: 1;
+      position: relative;
+      background: #ecf0f1;
+    }
+
+    #viewer {
+      width: 100%;
+      height: 100%;
+    }
+
+    #floorplanner {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #34495e;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background: #2980b9;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .btn-success {
+      background: #2ecc71;
+    }
+
+    .btn-success:hover {
+      background: #27ae60;
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: #34495e;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .tab-btn.active {
+      background: #3498db;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .control-btn {
+      padding: 10px;
+      background: #34495e;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .control-btn:hover {
+      background: #2c3e50;
+    }
+
+    #loading {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .info {
+      background: #34495e;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      font-size: 12px;
+      line-space: 1.5;
+    }
+
+    .info h3 {
+      margin-bottom: 10px;
+      color: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <h1 style="margin-bottom: 30px; font-size: 24px;">Blueprint3D</h1>
+
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="design">Design</button>
+        <button class="tab-btn" data-tab="floorplan">Floor Plan</button>
+      </div>
+
+      <div class="section">
+        <h2>File Operations</h2>
+        <button class="btn" id="new-btn">New Design</button>
+        <button class="btn btn-success" id="load-btn">Load Design</button>
+        <button class="btn" id="save-btn">Save Design</button>
+        <input type="file" id="file-input" class="file-input" accept=".blueprint3d">
+      </div>
+
+      <div class="section">
+        <h2>Camera Controls</h2>
+        <div class="controls">
+          <button class="control-btn" id="zoom-in">Zoom In</button>
+          <button class="control-btn" id="zoom-out">Zoom Out</button>
+          <button class="control-btn" id="move-left">← Left</button>
+          <button class="control-btn" id="move-right">Right →</button>
+          <button class="control-btn" id="move-up">↑ Up</button>
+          <button class="control-btn" id="move-down">↓ Down</button>
+        </div>
+        <button class="btn" id="reset-view">Reset View</button>
+      </div>
+
+      <div class="section" id="floorplan-controls" style="display: none;">
+        <h2>Drawing Tools</h2>
+        <button class="btn" id="draw-mode">Draw Walls</button>
+        <button class="btn" id="move-mode">Move</button>
+        <button class="btn btn-danger" id="delete-mode">Delete</button>
+      </div>
+
+      <div class="info">
+        <h3>Modern Blueprint3D</h3>
+        <p>Built with:</p>
+        <ul style="margin-left: 20px; margin-top: 10px;">
+          <li>TypeScript ES6 Modules</li>
+          <li>Vite Build System</li>
+          <li>No jQuery Dependencies</li>
+          <li>Three.js v0.69</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="viewer-container">
+      <div id="viewer"></div>
+      <canvas id="floorplanner-canvas"></canvas>
+      <div id="loading">Loading...</div>
+    </div>
+  </div>
+
+  <script type="module" src="./modern-example.ts"></script>
+</body>
+</html>

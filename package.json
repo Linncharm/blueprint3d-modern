@@ -16,7 +16,11 @@
     "vec2": "^1.6.0"
   },
   "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/three": "^0.181.0",
+    "@vitejs/plugin-legacy": "^7.2.1",
     "browserify": "^8.0.2",
+    "esbuild": "^0.27.0",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-concat": "^1.0.1",
@@ -26,14 +30,22 @@
     "grunt-subgrunt": "^1.2.0",
     "grunt-typedoc": "^0.2.4",
     "grunt-typescript": "^0.8.0",
-    "matchdep": "^1.0.1"
+    "matchdep": "^1.0.1",
+    "tsx": "^4.20.6",
+    "vite": "^7.2.2"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Ekki/blueprint3d.git"
   },
   "scripts": {
-    "build": "browserify src/blueprint3d.js > example/js/blueprint3d.js --verbose"
+    "build": "browserify src/blueprint3d.js > example/js/blueprint3d.js --verbose",
+    "build:modern": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "build:old": "grunt default",
+    "build:release": "grunt release",
+    "test:modern": "tsx src/test-utils.ts"
   },
   "author": ""
 }
