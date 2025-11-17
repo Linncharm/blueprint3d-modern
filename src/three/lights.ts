@@ -20,19 +20,22 @@ export var Lights = function (scene, floorplan) {
       light.position.set(0, height, 0);
       scene.add(light);
 
-      dirLight = new THREE.DirectionalLight(0xffffff, 0);
+      // Fixed: Set intensity to 0.5 instead of 0 (was causing items to be invisible)
+      dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
       dirLight.color.setHSL(1, 1, 0.1);
 
       dirLight.castShadow = true;
 
-      dirLight.shadowMapWidth = 1024;
-      dirLight.shadowMapHeight = 1024;
+      // Updated for Three.js r181: Use shadow.mapSize instead of shadowMapWidth/Height
+      dirLight.shadow.mapSize.width = 1024;
+      dirLight.shadow.mapSize.height = 1024;
 
-      dirLight.shadowCameraFar = height + tol;
-      dirLight.shadowBias = -0.0001;
-      dirLight.shadowDarkness = 0.2;
+      // Updated for Three.js r181: Use shadow.camera.far instead of shadowCameraFar
+      dirLight.shadow.camera.far = height + tol;
+      // Updated for Three.js r181: Use shadow.bias instead of shadowBias
+      dirLight.shadow.bias = -0.0001;
+      // shadowDarkness was removed in Three.js r181
       dirLight.visible = true;
-      dirLight.shadowCameraVisible = false;
 
       scene.add(dirLight);
       scene.add(dirLight.target);
@@ -50,20 +53,13 @@ export var Lights = function (scene, floorplan) {
         center.x, height, center.z);
       dirLight.position.copy(pos);
       dirLight.target.position.copy(center);
-      //dirLight.updateMatrix();
-      //dirLight.updateWorldMatrix()
-      dirLight.shadowCameraLeft = -d;
-      dirLight.shadowCameraRight = d;
-      dirLight.shadowCameraTop = d;
-      dirLight.shadowCameraBottom = -d;
-      // this is necessary for updates
-      if (dirLight.shadowCamera) {
-        dirLight.shadowCamera.left = dirLight.shadowCameraLeft;
-        dirLight.shadowCamera.right = dirLight.shadowCameraRight;
-        dirLight.shadowCamera.top = dirLight.shadowCameraTop;
-        dirLight.shadowCamera.bottom = dirLight.shadowCameraBottom;
-        dirLight.shadowCamera.updateProjectionMatrix();
-      }
+
+      // Updated for Three.js r181: Use shadow.camera properties directly
+      dirLight.shadow.camera.left = -d;
+      dirLight.shadow.camera.right = d;
+      dirLight.shadow.camera.top = d;
+      dirLight.shadow.camera.bottom = -d;
+      dirLight.shadow.camera.updateProjectionMatrix();
     }
 
   init();

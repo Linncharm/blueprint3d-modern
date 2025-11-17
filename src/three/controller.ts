@@ -389,8 +389,18 @@ export var Controller = function (three, model, camera, element, controls, hud) 
       // filter by normals, if true
       if (filterByNormals) {
         intersections = Utils.removeIf(intersections, function (intersection) {
-          if (intersection.face && intersection.face.normal) {
-            var dot = intersection.face.normal.dot(direction);
+          // In Three.js r181 with BufferGeometry, use intersection.normal instead of face.normal
+          var normal = null;
+          if (intersection.normal) {
+            // For BufferGeometry, raycaster provides the normal directly
+            normal = intersection.normal;
+          } else if (intersection.face && intersection.face.normal) {
+            // Legacy support for old Geometry class (shouldn't happen in r181)
+            normal = intersection.face.normal;
+          }
+
+          if (normal) {
+            var dot = normal.dot(direction);
             return (dot > 0);
           }
           return false;

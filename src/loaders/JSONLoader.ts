@@ -97,6 +97,9 @@ export class JSONLoader {
     const uvsArray: number[] = [];
     const indices: number[] = [];
 
+    // Track material groups for multi-material meshes
+    const materialGroups: { [key: number]: number[] } = {};
+
     let offset = 0;
 
     // Process faces
@@ -121,9 +124,10 @@ export class JSONLoader {
         vertexIndices.push(faces[i++]);
       }
 
-      // Material index
+      // Material index - track for groups
+      let materialIndex = 0;
       if (hasMaterial) {
-        i++; // Skip material index
+        materialIndex = faces[i++];
       }
 
       // Face UV
@@ -200,15 +204,27 @@ export class JSONLoader {
         }
       }
 
-      // Add triangle indices
+      // Add triangle indices and track material groups
+      const currentIndexStart = indices.length;
+
       if (isQuad) {
-        // Split quad into two triangles
+        // Split quad into two triangles (6 indices)
         indices.push(offset, offset + 1, offset + 2);
         indices.push(offset, offset + 2, offset + 3);
         offset += 4;
       } else {
+        // Triangle (3 indices)
         indices.push(offset, offset + 1, offset + 2);
         offset += 3;
+      }
+
+      // Track indices for this material
+      if (!materialGroups[materialIndex]) {
+        materialGroups[materialIndex] = [];
+      }
+      // Store the indices added for this face
+      for (let idx = currentIndexStart; idx < indices.length; idx++) {
+        materialGroups[materialIndex].push(idx);
       }
     }
 
@@ -223,6 +239,41 @@ export class JSONLoader {
 
     // Set indices (required for raycaster to work properly)
     geometry.setIndex(indices);
+
+    // Add material groups for multi-material support
+    // Groups define which indices use which material
+    if (Object.keys(materialGroups).length > 0) {
+      // Convert material groups to sorted ranges
+      Object.keys(materialGroups).forEach(matIndexStr => {
+        const matIndex = parseInt(matIndexStr);
+        const groupIndices = materialGroups[matIndex];
+
+        if (groupIndices.length > 0) {
+          // Sort indices to find contiguous ranges
+          groupIndices.sort((a, b) => a - b);
+
+          // Add groups for contiguous ranges
+          let rangeStart = groupIndices[0];
+          let rangeCount = 1;
+
+          for (let i = 1; i < groupIndices.length; i++) {
+            if (groupIndices[i] === groupIndices[i - 1] + 1) {
+              // Continue current range
+              rangeCount++;
+            } else {
+              // Add previous range
+              geometry.addGroup(rangeStart, rangeCount, matIndex);
+              // Start new range
+              rangeStart = groupIndices[i];
+              rangeCount = 1;
+            }
+          }
+
+          // Add final range
+          geometry.addGroup(rangeStart, rangeCount, matIndex);
+        }
+      });
+    }
 
     // Compute normals if not provided
     if (normalsArray.length === 0) {
@@ -241,6 +292,8 @@ export class JSONLoader {
       boundingBox: geometry.boundingBox,
       hasMaterials: materials.length > 0,
       materialCount: materials.length,
+      groupsCount: geometry.groups.length,
+      groups: geometry.groups,
       materials: materials
     });
 

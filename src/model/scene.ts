@@ -127,22 +127,25 @@ export class Scene {
       });
       var scope = this;
       var loaderCallback = function (geometry: THREE.BufferGeometry, materials: THREE.Material[]) {
-        // TEMPORARY: Force bright color for debugging visibility
-        const debugMat = new THREE.MeshBasicMaterial({
-          color: 0xff00ff,  // Magenta
-          side: THREE.DoubleSide
-        });
-
         console.log('Creating item with materials:', {
           loadedMaterials: materials.length,
-          usingDebugMaterial: true
+          materialTypes: materials.map(m => m.type)
+        });
+
+        // Ensure materials are properly configured for visibility
+        materials.forEach(mat => {
+          // Make sure materials are double-sided to avoid backface culling issues
+          mat.side = THREE.DoubleSide;
+          // Enable depth testing and writing
+          mat.depthTest = true;
+          mat.depthWrite = true;
         });
 
         // Custom JSONLoader already returns BufferGeometry
         var item = new (Factory.getClass(itemType))(
           scope.model,
           metadata, geometry,
-          [debugMat],  // TEMPORARY: Use debug material
+          materials,  // Use actual materials from the loaded model
           position, rotation, scale
         );
         item.fixed = fixed || false;
