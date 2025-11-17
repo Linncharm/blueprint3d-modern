@@ -1,6 +1,6 @@
-import $ from 'jquery';
 import { Configuration, configWallThickness, configWallHeight } from '../core/configuration';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import type { Item } from '../items/item';
 import type { Corner } from './corner';
 import type { HalfEdge } from './half_edge';
@@ -50,13 +50,13 @@ export class Wall {
     public height = Configuration.getNumericValue(configWallHeight);
 
     /** Actions to be applied after movement. */
-    private moved_callbacks = $.Callbacks();
+    private moved_callbacks = new EventEmitter();
 
     /** Actions to be applied on removal. */
-    private deleted_callbacks = $.Callbacks();
+    private deleted_callbacks = new EventEmitter();
 
     /** Actions to be applied explicitly. */
-    private action_callbacks = $.Callbacks();
+    private action_callbacks = new EventEmitter();
 
     /** 
      * Constructs a new wall.

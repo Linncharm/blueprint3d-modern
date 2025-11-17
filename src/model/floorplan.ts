@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import $ from 'jquery';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import { Wall } from './wall';
 import { Corner } from './corner';
 import { Room } from './room';
@@ -24,19 +24,19 @@ export class Floorplan {
     private rooms: Room[] = [];
 
     /** */
-    private new_wall_callbacks = $.Callbacks();
+    private new_wall_callbacks = new EventEmitter();
 
     /** */
-    private new_corner_callbacks = $.Callbacks();
+    private new_corner_callbacks = new EventEmitter();
 
     /** */
-    private redraw_callbacks = $.Callbacks();
+    private redraw_callbacks = new EventEmitter();
 
     /** */
-    private updated_rooms = $.Callbacks();
+    private updated_rooms = new EventEmitter();
 
     /** */
-    public roomLoadedCallbacks = $.Callbacks();
+    public roomLoadedCallbacks = new EventEmitter();
 
     /** 
     * Floor textures are owned by the floorplan, because room objects are 

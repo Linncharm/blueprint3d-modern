@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import $ from 'jquery';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import type { Room } from './room';
 import type { Wall } from './wall';
 
@@ -41,7 +41,7 @@ export class HalfEdge {
     private invExteriorTransform = new THREE.Matrix4();
 
     /** */
-    public redrawCallbacks = $.Callbacks();
+    public redrawCallbacks = new EventEmitter();
 
     /**
      * Constructs a half edge.

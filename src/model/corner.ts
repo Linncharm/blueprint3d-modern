@@ -1,5 +1,5 @@
-import $ from 'jquery';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import type { Floorplan } from './floorplan';
 import type { Wall } from './wall';
 
@@ -18,13 +18,13 @@ export class Corner {
     private wallEnds: Wall[] = [];
 
     /** Callbacks to be fired on movement. */
-    private moved_callbacks = $.Callbacks();
+    private moved_callbacks = new EventEmitter();
 
     /** Callbacks to be fired on removal. */
-    private deleted_callbacks = $.Callbacks();
+    private deleted_callbacks = new EventEmitter();
 
     /** Callbacks to be fired in case of action. */
-    private action_callbacks = $.Callbacks();
+    private action_callbacks = new EventEmitter();
 
     /** Constructs a corner.
      * @param floorplan The associated floorplan.

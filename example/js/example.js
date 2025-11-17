@@ -1,7 +1,29 @@
-import $ from 'jquery';
 import * as THREE from 'three';
 import { Blueprint3d } from '../../src/blueprint3d';
 import { floorplannerModes } from '../../src/floorplanner/floorplanner_view';
+import { EventEmitter } from '../../src/core/events';
+
+// Helper functions to replace jQuery
+const $ = (selector) => {
+  if (selector instanceof HTMLElement) return selector;
+  return document.querySelector(selector);
+};
+
+const $$ = (selector) => document.querySelectorAll(selector);
+
+const addClass = (el, className) => {
+  if (!el) return;
+  const classes = className.split(' ').filter(c => c);
+  el.classList.add(...classes);
+};
+
+const removeClass = (el, className) => {
+  if (!el) return;
+  const classes = className.split(' ').filter(c => c);
+  el.classList.remove(...classes);
+};
+
+const hasClass = (el, className) => el?.classList.contains(className);
 
 /*
  * Camera Buttons
@@ -23,22 +45,22 @@ class CameraButtons {
   }
 
   init() {
-    $("#zoom-in").click((e) => this.zoomIn(e));
-    $("#zoom-out").click((e) => this.zoomOut(e));
-    $("#zoom-in").dblclick(this.preventDefault);
-    $("#zoom-out").dblclick(this.preventDefault);
+    $("#zoom-in").addEventListener('click', (e) => this.zoomIn(e));
+    $("#zoom-out").addEventListener('click', (e) => this.zoomOut(e));
+    $("#zoom-in").addEventListener('dblclick', this.preventDefault);
+    $("#zoom-out").addEventListener('dblclick', this.preventDefault);
 
-    $("#reset-view").click(() => this.three.centerCamera());
+    $("#reset-view").addEventListener('click', () => this.three.centerCamera());
 
-    $("#move-left").click(() => this.pan(this.directions.LEFT));
-    $("#move-right").click(() => this.pan(this.directions.RIGHT));
-    $("#move-up").click(() => this.pan(this.directions.UP));
-    $("#move-down").click(() => this.pan(this.directions.DOWN));
+    $("#move-left").addEventListener('click', () => this.pan(this.directions.LEFT));
+    $("#move-right").addEventListener('click', () => this.pan(this.directions.RIGHT));
+    $("#move-up").addEventListener('click', () => this.pan(this.directions.UP));
+    $("#move-down").addEventListener('click', () => this.pan(this.directions.DOWN));
 
-    $("#move-left").dblclick(this.preventDefault);
-    $("#move-right").dblclick(this.preventDefault);
-    $("#move-up").dblclick(this.preventDefault);
-    $("#move-down").dblclick(this.preventDefault);
+    $("#move-left").addEventListener('dblclick', this.preventDefault);
+    $("#move-right").addEventListener('dblclick', this.preventDefault);
+    $("#move-up").addEventListener('dblclick', this.preventDefault);
+    $("#move-down").addEventListener('dblclick', this.preventDefault);
   }
 
   preventDefault(e) {
@@ -89,7 +111,7 @@ class ContextMenu {
   }
 
   init() {
-    $("#context-menu-delete").click(() => {
+    $("#context-menu-delete").addEventListener('click', () => {
       if (this.selectedItem) {
         this.selectedItem.remove();
       }
@@ -100,8 +122,8 @@ class ContextMenu {
 
     this.initResize();
 
-    $("#fixed").click(() => {
-      const checked = $("#fixed").prop('checked');
+    $("#fixed").addEventListener('click', () => {
+      const checked = $("#fixed").checked;
       if (this.selectedItem) {
         this.selectedItem.setFixed(checked);
       }
@@ -119,36 +141,36 @@ class ContextMenu {
   itemSelected(item) {
     this.selectedItem = item;
 
-    $("#context-menu-name").text(item.metadata.itemName);
+    $("#context-menu-name").textContent = item.metadata.itemName;
 
-    $("#item-width").val(this.cmToIn(this.selectedItem.getWidth()).toFixed(0));
-    $("#item-height").val(this.cmToIn(this.selectedItem.getHeight()).toFixed(0));
-    $("#item-depth").val(this.cmToIn(this.selectedItem.getDepth()).toFixed(0));
+    $("#item-width").value = this.cmToIn(this.selectedItem.getWidth()).toFixed(0);
+    $("#item-height").value = this.cmToIn(this.selectedItem.getHeight()).toFixed(0);
+    $("#item-depth").value = this.cmToIn(this.selectedItem.getDepth()).toFixed(0);
 
-    $("#context-menu").show();
+    $("#context-menu").style.display = 'block';
 
-    $("#fixed").prop('checked', item.fixed);
+    $("#fixed").checked = item.fixed;
   }
 
   resize() {
     if (this.selectedItem) {
       this.selectedItem.resize(
-        this.inToCm($("#item-height").val()),
-        this.inToCm($("#item-width").val()),
-        this.inToCm($("#item-depth").val())
+        this.inToCm($("#item-height").value),
+        this.inToCm($("#item-width").value),
+        this.inToCm($("#item-depth").value)
       );
     }
   }
 
   initResize() {
-    $("#item-height").change(() => this.resize());
-    $("#item-width").change(() => this.resize());
-    $("#item-depth").change(() => this.resize());
+    $("#item-height").addEventListener('change', () => this.resize());
+    $("#item-width").addEventListener('change', () => this.resize());
+    $("#item-depth").addEventListener('change', () => this.resize());
   }
 
   itemUnselected() {
     this.selectedItem = null;
-    $("#context-menu").hide();
+    $("#context-menu").style.display = 'none';
   }
 }
 
@@ -170,9 +192,9 @@ class ModalEffects {
 
   update() {
     if (this.itemsLoading > 0) {
-      $("#loading-modal").show();
+      $("#loading-modal").style.display = 'block';
     } else {
-      $("#loading-modal").hide();
+      $("#loading-modal").style.display = 'none';
     }
   }
 
@@ -208,7 +230,7 @@ class SideMenu {
       "DESIGN": $("#design_tab")
     };
 
-    this.stateChangeCallbacks = $.Callbacks();
+    this.stateChangeCallbacks = new EventEmitter();
 
     this.states = {
       "DEFAULT": {
@@ -233,10 +255,10 @@ class SideMenu {
   init() {
     for (let tab in this.tabs) {
       const elem = this.tabs[tab];
-      elem.click(this.tabClicked(elem));
+      elem.addEventListener('click', this.tabClicked(elem));
     }
 
-    $("#update-floorplan").click(() => this.floorplanUpdate());
+    $("#update-floorplan").addEventListener('click', () => this.floorplanUpdate());
 
     this.initLeftMenu();
 
@@ -276,10 +298,10 @@ class SideMenu {
     // show the right tab as active
     if (this.currentState.tab !== newState.tab) {
       if (this.currentState.tab != null) {
-        this.currentState.tab.removeClass(this.ACTIVE_CLASS);
+        removeClass(this.currentState.tab, this.ACTIVE_CLASS);
       }
       if (newState.tab != null) {
-        newState.tab.addClass(this.ACTIVE_CLASS);
+        addClass(newState.tab, this.ACTIVE_CLASS);
       }
     }
 
@@ -287,8 +309,8 @@ class SideMenu {
     this.blueprint3d.three.getController().setSelectedObject(null);
 
     // show and hide the right divs
-    this.currentState.div.hide();
-    newState.div.show();
+    this.currentState.div.style.display = 'none';
+    newState.div.style.display = 'block';
 
     // custom actions
     if (newState === this.states.FLOORPLAN) {
@@ -312,30 +334,32 @@ class SideMenu {
   }
 
   initLeftMenu() {
-    $(window).resize(() => this.handleWindowResize());
+    window.addEventListener('resize', () => this.handleWindowResize());
     this.handleWindowResize();
   }
 
   handleWindowResize() {
-    $(".sidebar").height(window.innerHeight);
-    $("#add-items").height(window.innerHeight);
+    $$(".sidebar").forEach(el => el.style.height = window.innerHeight + 'px');
+    $("#add-items").style.height = window.innerHeight + 'px';
   }
 
   // TODO: this doesn't really belong here
   initItems() {
-    $("#add-items").find(".add-item").mousedown((e) => {
-      const $target = $(e.currentTarget);
-      const modelUrl = $target.attr("model-url");
-      const itemType = parseInt($target.attr("model-type"));
-      const metadata = {
-        itemName: $target.attr("model-name"),
-        resizable: true,
-        modelUrl: modelUrl,
-        itemType: itemType
-      };
+    $$("#add-items .add-item").forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        const target = e.currentTarget;
+        const modelUrl = target.getAttribute("model-url");
+        const itemType = parseInt(target.getAttribute("model-type"));
+        const metadata = {
+          itemName: target.getAttribute("model-name"),
+          resizable: true,
+          modelUrl: modelUrl,
+          itemType: itemType
+        };
 
-      this.blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
-      this.setCurrentState(this.states.DEFAULT);
+        this.blueprint3d.model.scene.addItem(itemType, modelUrl, metadata);
+        this.setCurrentState(this.states.DEFAULT);
+      });
     });
   }
 }
@@ -354,17 +378,19 @@ class TextureSelector {
   }
 
   initTextureSelectors() {
-    $(".texture-select-thumbnail").click((e) => {
-      const $target = $(e.currentTarget);
-      const textureUrl = $target.attr("texture-url");
-      const textureStretch = ($target.attr("texture-stretch") === "true");
-      const textureScale = parseInt($target.attr("texture-scale"));
+    $$(".texture-select-thumbnail").forEach(el => {
+      el.addEventListener('click', (e) => {
+        const target = e.currentTarget;
+        const textureUrl = target.getAttribute("texture-url");
+        const textureStretch = (target.getAttribute("texture-stretch") === "true");
+        const textureScale = parseInt(target.getAttribute("texture-scale"));
 
-      if (this.currentTarget) {
-        this.currentTarget.setTexture(textureUrl, textureStretch, textureScale);
-      }
+        if (this.currentTarget) {
+          this.currentTarget.setTexture(textureUrl, textureStretch, textureScale);
+        }
 
-      e.preventDefault();
+        e.preventDefault();
+      });
     });
   }
 
@@ -379,19 +405,19 @@ class TextureSelector {
 
   wallClicked(halfEdge) {
     this.currentTarget = halfEdge;
-    $("#floorTexturesDiv").hide();
-    $("#wallTextures").show();
+    $("#floorTexturesDiv").style.display = 'none';
+    $("#wallTextures").style.display = 'block';
   }
 
   floorClicked(room) {
     this.currentTarget = room;
-    $("#wallTextures").hide();
-    $("#floorTexturesDiv").show();
+    $("#wallTextures").style.display = 'none';
+    $("#floorTexturesDiv").style.display = 'block';
   }
 
   reset() {
-    $("#wallTextures").hide();
-    $("#floorTexturesDiv").hide();
+    $("#wallTextures").style.display = 'none';
+    $("#floorTexturesDiv").style.display = 'none';
   }
 }
 
@@ -412,40 +438,40 @@ class ViewerFloorplanner {
   }
 
   init() {
-    $(window).resize(() => this.handleWindowResize());
+    window.addEventListener('resize', () => this.handleWindowResize());
     this.handleWindowResize();
 
     // mode buttons
     this.floorplanner.modeResetCallbacksAPI.add((mode) => {
-      $(this.draw).removeClass(this.activeStyle);
-      $(this.remove).removeClass(this.activeStyle);
-      $(this.move).removeClass(this.activeStyle);
+      removeClass($(this.draw), this.activeStyle);
+      removeClass($(this.remove), this.activeStyle);
+      removeClass($(this.move), this.activeStyle);
 
       if (mode === floorplannerModes.MOVE) {
-        $(this.move).addClass(this.activeStyle);
+        addClass($(this.move), this.activeStyle);
       } else if (mode === floorplannerModes.DRAW) {
-        $(this.draw).addClass(this.activeStyle);
+        addClass($(this.draw), this.activeStyle);
       } else if (mode === floorplannerModes.DELETE) {
-        $(this.remove).addClass(this.activeStyle);
+        addClass($(this.remove), this.activeStyle);
       }
 
       if (mode === floorplannerModes.DRAW) {
-        $("#draw-walls-hint").show();
+        $("#draw-walls-hint").style.display = 'block';
         this.handleWindowResize();
       } else {
-        $("#draw-walls-hint").hide();
+        $("#draw-walls-hint").style.display = 'none';
       }
     });
 
-    $(this.move).click(() => {
+    $(this.move).addEventListener('click', () => {
       this.floorplanner.setMode(floorplannerModes.MOVE);
     });
 
-    $(this.draw).click(() => {
+    $(this.draw).addEventListener('click', () => {
       this.floorplanner.setMode(floorplannerModes.DRAW);
     });
 
-    $(this.remove).click(() => {
+    $(this.remove).addEventListener('click', () => {
       this.floorplanner.setMode(floorplannerModes.DELETE);
     });
   }
@@ -455,7 +481,9 @@ class ViewerFloorplanner {
   }
 
   handleWindowResize() {
-    $(this.canvasWrapper).height(window.innerHeight - $(this.canvasWrapper).offset().top);
+    const wrapper = $(this.canvasWrapper);
+    const rect = wrapper.getBoundingClientRect();
+    wrapper.style.height = (window.innerHeight - rect.top) + 'px';
     this.floorplanner.resizeView();
   }
 }
@@ -475,7 +503,7 @@ class MainControls {
   }
 
   loadDesign() {
-    const files = $("#loadFile").get(0).files;
+    const files = $("#loadFile").files;
     const reader = new FileReader();
     reader.onload = (event) => {
       const data = event.target.result;
@@ -496,9 +524,9 @@ class MainControls {
   }
 
   init() {
-    $("#new").click(() => this.newDesign());
-    $("#loadFile").change(() => this.loadDesign());
-    $("#saveFile").click(() => this.saveDesign());
+    $("#new").addEventListener('click', () => this.newDesign());
+    $("#loadFile").addEventListener('change', () => this.loadDesign());
+    $("#saveFile").addEventListener('click', () => this.saveDesign());
   }
 }
 

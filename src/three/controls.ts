@@ -9,7 +9,7 @@ Contributors:
  */
 
 import * as THREE from 'three';
-import $ from 'jquery';
+import { EventEmitter } from '../core/events';
 
 export var Controls = function (object, domElement) {
 
@@ -55,7 +55,7 @@ export var Controls = function (object, domElement) {
     // The four arrow keys
     this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
 
-    this.cameraMovedCallbacks = $.Callbacks();
+    this.cameraMovedCallbacks = new EventEmitter();
 
     this.needsUpdate = true;
 

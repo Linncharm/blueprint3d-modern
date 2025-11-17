@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import $ from 'jquery';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import type { Corner } from './corner';
 import type { Floorplan } from './floorplan';
 import { HalfEdge } from './half_edge';
@@ -36,7 +36,7 @@ export class Room {
     private customTexture = false;
 
     /** */
-    private floorChangeCallbacks = $.Callbacks();
+    private floorChangeCallbacks = new EventEmitter();
 
     /**
      *  ordered CCW

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import $ from 'jquery';
 import { Utils } from '../core/utils';
+import { EventEmitter } from '../core/events';
 import { Factory } from '../items/factory';
 import type { Item } from '../items/item';
 import type { Model } from './model';
@@ -23,13 +23,13 @@ export class Scene {
     private loader: THREE.JSONLoader;
 
     /** */
-    private itemLoadingCallbacks = $.Callbacks();
+    private itemLoadingCallbacks = new EventEmitter();
 
     /** Item */
-    private itemLoadedCallbacks = $.Callbacks();
+    private itemLoadedCallbacks = new EventEmitter();
 
     /** Item */
-    private itemRemovedCallbacks = $.Callbacks();
+    private itemRemovedCallbacks = new EventEmitter();
 
     /**
      * Constructs a scene.

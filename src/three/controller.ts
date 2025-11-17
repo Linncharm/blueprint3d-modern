@@ -40,9 +40,9 @@ export var Controller = function (three, model, camera, element, controls, hud) 
     this.needsUpdate = true;
 
     function init() {
-      element.mousedown(mouseDownEvent);
-      element.mouseup(mouseUpEvent);
-      element.mousemove(mouseMoveEvent);
+      element.addEventListener('mousedown', mouseDownEvent);
+      element.addEventListener('mouseup', mouseUpEvent);
+      element.addEventListener('mousemove', mouseMoveEvent);
 
       mouse = new THREE.Vector2();
 

@@ -1,5 +1,3 @@
-import $ from 'jquery';
-
 // add items to the "Add Items" tab
 
 const items = [
@@ -164,7 +162,9 @@ const items = [
 ];
 
 export function initItems() {
-  const itemsDiv = $("#items-wrapper");
+  const itemsDiv = document.getElementById("items-wrapper");
+  if (!itemsDiv) return;
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const html = '<div class="col-sm-4">' +
@@ -179,7 +179,7 @@ export function initItems() {
       '" alt="Add Item"> ' +
       item.name +
       '</a></div>';
-    itemsDiv.append(html);
+    itemsDiv.insertAdjacentHTML('beforeend', html);
   }
 }
 

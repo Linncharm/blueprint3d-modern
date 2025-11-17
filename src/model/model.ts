@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import $ from 'jquery';
 import { Floorplan } from './floorplan';
 import { Scene } from './scene';
+import { EventEmitter } from '../core/events';
 
 /**
  * A Model connects a Floorplan and a Scene.
@@ -15,16 +15,16 @@ export class Model {
     public scene: Scene;
 
     /** */
-    private roomLoadingCallbacks = $.Callbacks();
+    private roomLoadingCallbacks = new EventEmitter();
 
     /** */
-    private roomLoadedCallbacks = $.Callbacks();
+    private roomLoadedCallbacks = new EventEmitter();
 
     /** name */
-    private roomSavedCallbacks = $.Callbacks();
+    private roomSavedCallbacks = new EventEmitter();
 
     /** success (bool), copy (bool) */
-    private roomDeletedCallbacks = $.Callbacks();
+    private roomDeletedCallbacks = new EventEmitter();
 
     /** Constructs a new model.
      * @param textureDir The directory containing the textures.
