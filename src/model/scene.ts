@@ -21,16 +21,16 @@ export class Scene {
     public needsUpdate = false;
 
     /** The Json loader. */
-    private loader: any;
+    private loader: JSONLoader;
 
     /** */
-    private itemLoadingCallbacks = new EventEmitter();
+    private itemLoadingCallbacks = new EventEmitter<void>();
 
     /** Item */
-    private itemLoadedCallbacks = new EventEmitter();
+    public itemLoadedCallbacks = new EventEmitter<Item>();
 
     /** Item */
-    private itemRemovedCallbacks = new EventEmitter();
+    public itemRemovedCallbacks = new EventEmitter<Item>();
 
     /**
      * Constructs a scene.
@@ -48,16 +48,18 @@ export class Scene {
     /** Adds a non-item, basically a mesh, to the scene.
      * @param mesh The mesh to be added.
      */
-    public add(mesh: THREE.Mesh) {
+    public add(mesh: THREE.Mesh): void {
       this.scene.add(mesh);
     }
 
     /** Removes a non-item, basically a mesh, from the scene.
      * @param mesh The mesh to be removed.
      */
-    public remove(mesh: THREE.Mesh) {
+    public remove(mesh: THREE.Mesh): void {
       this.scene.remove(mesh);
-      Utils.removeValue(this.items, mesh);
+      if (this.items.includes(mesh as unknown as Item)) {
+        Utils.removeValue(this.items, mesh as unknown as Item);
+      }
     }
 
     /** Gets the scene.
@@ -82,11 +84,9 @@ export class Scene {
     }
 
     /** Removes all items. */
-    public clearItems() {
-      var items_copy = this.items
-      var scope = this;
+    public clearItems(): void {
       this.items.forEach((item) => {
-        scope.removeItem(item, true);
+        this.removeItem(item, true);
       });
       this.items = []
     }
@@ -96,8 +96,7 @@ export class Scene {
      * @param item The item to be removed.
      * @param dontRemove If not set, also remove the item from the items list.
      */
-    public removeItem(item: Item, dontRemove?: boolean) {
-      dontRemove = dontRemove || false;
+    public removeItem(item: Item, dontRemove: boolean = false): void {
       // use this for item meshes
       this.itemRemovedCallbacks.fire(item);
       item.removed();
@@ -117,7 +116,7 @@ export class Scene {
      * @param scale The initial scaling.
      * @param fixed True if fixed.
      */
-    public addItem(itemType: number, fileName: string, metadata, position?: THREE.Vector3, rotation?: number, scale?: THREE.Vector3, fixed?: boolean) {
+    public addItem(itemType: number, fileName: string, metadata: Record<string, unknown>, position?: THREE.Vector3, rotation?: number, scale?: THREE.Vector3, fixed?: boolean): void {
       itemType = itemType || 1;
       console.log('addItem called with:', {
         position: position,
@@ -126,7 +125,7 @@ export class Scene {
         fixed: fixed
       });
       var scope = this;
-      var loaderCallback = function (geometry: THREE.BufferGeometry, materials: THREE.Material[]) {
+      var loaderCallback = (geometry: THREE.BufferGeometry, materials: THREE.Material[]) => {
         console.log('Creating item with materials:', {
           loadedMaterials: materials.length,
           materialTypes: materials.map(m => m.type)

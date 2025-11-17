@@ -23,10 +23,10 @@ export class Wall {
     private id: string;
 
     /** Front is the plane from start to end. */
-    public frontEdge: HalfEdge = null;
+    public frontEdge: HalfEdge | null = null;
 
     /** Back is the plane from end to start. */
-    public backEdge: HalfEdge = null;
+    public backEdge: HalfEdge | null = null;
 
     /** */
     public orphan = false;

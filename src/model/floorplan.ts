@@ -6,6 +6,15 @@ import { Corner } from './corner';
 import { Room } from './room';
 import { HalfEdge } from './half_edge';
 
+export type FloorTexture = { url: string; scale: number };
+export interface SavedFloorplan {
+  corners: Record<string, { x: number; y: number }>;
+  walls: Array<{ corner1: string; corner2: string; frontTexture?: unknown; backTexture?: unknown }>;
+  wallTextures?: unknown[];
+  floorTextures?: Record<string, FloorTexture>;
+  newFloorTextures?: Record<string, FloorTexture>;
+}
+
 /** */
 const defaultFloorPlanTolerance = 10.0;
 
@@ -24,19 +33,19 @@ export class Floorplan {
     private rooms: Room[] = [];
 
     /** */
-    private new_wall_callbacks = new EventEmitter();
+    private new_wall_callbacks = new EventEmitter<Wall>();
 
     /** */
-    private new_corner_callbacks = new EventEmitter();
+    private new_corner_callbacks = new EventEmitter<Corner>();
 
     /** */
-    private redraw_callbacks = new EventEmitter();
+    private redraw_callbacks = new EventEmitter<void>();
 
     /** */
-    private updated_rooms = new EventEmitter();
+    private updated_rooms = new EventEmitter<void>();
 
     /** */
-    public roomLoadedCallbacks = new EventEmitter();
+    public roomLoadedCallbacks = new EventEmitter<void>();
 
     /** 
     * Floor textures are owned by the floorplan, because room objects are 
@@ -44,7 +53,7 @@ export class Floorplan {
     * floorTextures is a map of room UUIDs (string) to a object with
     * url and scale attributes.
     */
-    private floorTextures = {};
+    private floorTextures: Record<string, FloorTexture> = {};
 
     /** Constructs a floorplan. */
     constructor() {
@@ -52,7 +61,7 @@ export class Floorplan {
 
     // hack
     public wallEdges(): HalfEdge[] {
-      var edges = []
+      var edges: HalfEdge[] = []
 
       this.walls.forEach((wall) => {
         if (wall.frontEdge) {
@@ -67,22 +76,24 @@ export class Floorplan {
 
     // hack
     public wallEdgePlanes(): THREE.Mesh[] {
-      var planes = []
+      var planes: THREE.Mesh[] = []
       this.walls.forEach((wall) => {
         if (wall.frontEdge) {
-          planes.push(wall.frontEdge.plane);
+          if (wall.frontEdge.plane) {
+            planes.push(wall.frontEdge.plane);
+          }
         }
         if (wall.backEdge) {
-          planes.push(wall.backEdge.plane);
+          if (wall.backEdge.plane) {
+            planes.push(wall.backEdge.plane);
+          }
         }
       });
       return planes;
     }
 
     private floorPlanes(): THREE.Mesh[] {
-      return Utils.map(this.rooms, (room: Room) => {
-        return room.floorPlane;
-      });
+      return Utils.map(this.rooms, (room: Room) => room.floorPlane).filter((plane): plane is THREE.Mesh => plane !== null);
     }
 
     public fireOnNewWall(callback: (wall: Wall) => void): void {
@@ -138,7 +149,7 @@ export class Floorplan {
       var corner = new Corner(this, x, y, id);
       this.corners.push(corner);
       corner.fireOnDelete(() => {
-        this.removeCorner;
+        this.removeCorner(corner);
       });
       this.new_corner_callbacks.fire(corner);
       return corner;
@@ -188,8 +199,8 @@ export class Floorplan {
 
     // import and export -- cleanup
 
-    public saveFloorplan() {
-      var floorplan = {
+    public saveFloorplan(): SavedFloorplan {
+      var floorplan: SavedFloorplan = {
         corners: {},
         walls: [],
         wallTextures: [],
@@ -216,10 +227,10 @@ export class Floorplan {
       return floorplan;
     }
 
-    public loadFloorplan(floorplan) {
+    public loadFloorplan(floorplan: SavedFloorplan | null): void {
       this.reset();
 
-      var corners = {};
+      var corners: Record<string, Corner> = {};
       if (floorplan == null || !('corners' in floorplan) || !('walls' in floorplan)) {
         return
       }
@@ -239,7 +250,7 @@ export class Floorplan {
         }
       });
 
-      if ('newFloorTextures' in floorplan) {
+      if (floorplan.newFloorTextures) {
         this.floorTextures = floorplan.newFloorTextures;
       }
 
@@ -247,7 +258,7 @@ export class Floorplan {
       this.roomLoadedCallbacks.fire();
     }
 
-    public getFloorTexture(uuid: string) {
+    public getFloorTexture(uuid: string): FloorTexture | null {
       if (uuid in this.floorTextures) {
         return this.floorTextures[uuid];
       } else {
@@ -255,7 +266,7 @@ export class Floorplan {
       }
     }
 
-    public setFloorTexture(uuid: string, url: string, scale: number) {
+    public setFloorTexture(uuid: string, url: string, scale: number): void {
       this.floorTextures[uuid] = {
         url: url,
         scale: scale
@@ -263,10 +274,8 @@ export class Floorplan {
     }
 
     /** clear out obsolete floor textures */
-    private updateFloorTextures() {
-      var uuids = Utils.map(this.rooms, function (room) {
-        return room.getUuid();
-      });
+    private updateFloorTextures(): void {
+      var uuids = Utils.map(this.rooms, (room) => room.getUuid());
       for (var uuid in this.floorTextures) {
         if (!Utils.hasValue(uuids, uuid)) {
           delete this.floorTextures[uuid]
@@ -275,7 +284,7 @@ export class Floorplan {
     }
 
     /** */
-    private reset() {
+    private reset(): void {
       var tmpCorners = this.corners.slice(0);
       var tmpWalls = this.walls.slice(0);
       tmpCorners.forEach((corner) => {
@@ -291,7 +300,7 @@ export class Floorplan {
     /** 
      * Update rooms
      */
-    public update() {
+    public update(): void {
       this.walls.forEach((wall) => {
         wall.resetFrontBack();
       });
@@ -347,7 +356,7 @@ export class Floorplan {
       return ret;
     }
 
-    private assignOrphanEdges() {
+    private assignOrphanEdges(): void {
       // kinda hacky
       // find orphaned wall segments (i.e. not part of rooms) and
       // give them edges
@@ -373,7 +382,7 @@ export class Floorplan {
      */
     public findRooms(corners: Corner[]): Corner[][] {
 
-      function _calculateTheta(previousCorner: Corner, currentCorner: Corner, nextCorner: Corner) {
+      function _calculateTheta(previousCorner: Corner, currentCorner: Corner, nextCorner: Corner): number {
         var theta = Utils.angle2pi(
           previousCorner.x - currentCorner.x,
           previousCorner.y - currentCorner.y,
@@ -384,8 +393,8 @@ export class Floorplan {
 
       function _removeDuplicateRooms(roomArray: Corner[][]): Corner[][] {
         var results: Corner[][] = [];
-        var lookup = {};
-        var hashFunc = function (corner) {
+        var lookup: Record<string, boolean> = {};
+        var hashFunc = function (corner: Corner) {
           return corner.id
         };
         var sep = '-';
@@ -393,9 +402,10 @@ export class Floorplan {
           // rooms are cycles, shift it around to check uniqueness
           var add = true;
           var room = roomArray[i];
+          var str = '';
           for (var j = 0; j < room.length; j++) {
             var roomShift = Utils.cycle(room, j);
-            var str = Utils.map(roomShift, hashFunc).join(sep);
+            str = Utils.map(roomShift, hashFunc).join(sep);
             if (lookup.hasOwnProperty(str)) {
               add = false;
             }
@@ -414,11 +424,11 @@ export class Floorplan {
           previousCorners: Corner[]
         }[] = [];
 
-        var next = {
+        var next: { corner: Corner; previousCorners: Corner[] } | undefined = {
           corner: secondCorner,
           previousCorners: [firstCorner]
         };
-        var visited = {};
+        var visited: Record<string, boolean> = {};
         visited[firstCorner.id] = true;
 
         while (next) {

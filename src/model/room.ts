@@ -27,16 +27,16 @@ export class Room {
     public interiorCorners: Corner[] = [];
 
     /** */
-    private edgePointer = null;
+    private edgePointer: HalfEdge | null = null;
 
     /** floor plane for intersection testing */
-    public floorPlane: THREE.Mesh = null;
+    public floorPlane!: THREE.Mesh;
 
     /** */
     private customTexture = false;
 
     /** */
-    private floorChangeCallbacks = new EventEmitter();
+    private floorChangeCallbacks = new EventEmitter<void>();
 
     /**
      *  ordered CCW
@@ -55,11 +55,11 @@ export class Room {
       return cornerUuids.join();
     }
 
-    public fireOnFloorChange(callback) {
+    public fireOnFloorChange(callback: () => void): void {
       this.floorChangeCallbacks.add(callback);
     }
 
-    private getTexture() {
+    private getTexture(): { url: string; scale: number } {
       var uuid = this.getUuid();
       var tex = this.floorplan.getFloorTexture(uuid);
       return tex || defaultRoomTexture;
@@ -68,14 +68,14 @@ export class Room {
     /**
      * textureStretch always true, just an argument for consistency with walls
      */
-    private setTexture(textureUrl: string, textureStretch, textureScale: number) {
+    private setTexture(textureUrl: string, textureStretch: boolean, textureScale: number): void {
       var uuid = this.getUuid();
       this.floorplan.setFloorTexture(uuid, textureUrl, textureScale);
       this.floorChangeCallbacks.fire();
     }
 
-    private generatePlane() {
-      var points = [];
+    private generatePlane(): void {
+      var points: THREE.Vector2[] = [];
       this.interiorCorners.forEach((corner) => {
         points.push(new THREE.Vector2(
           corner.x,
@@ -92,7 +92,7 @@ export class Room {
       (<any>this.floorPlane).room = this; // js monkey patch
     }
 
-    private cycleIndex(index) {
+    private cycleIndex(index: number): number {
       if (index < 0) {
         return index += this.corners.length;
       } else {
@@ -100,7 +100,10 @@ export class Room {
       }
     }
 
-    private updateInteriorCorners() {
+    private updateInteriorCorners(): void {
+      if (!this.edgePointer) {
+        return;
+      }
       var edge = this.edgePointer;
       while (true) {
         this.interiorCorners.push(edge.interiorStart());
@@ -117,10 +120,10 @@ export class Room {
      * Populates each wall's half edge relating to this room
      * this creates a fancy doubly connected edge list (DCEL)
      */
-    private updateWalls() {
+    private updateWalls(): void {
 
-      var prevEdge = null;
-      var firstEdge = null;
+      var prevEdge: HalfEdge | null = null;
+      var firstEdge: HalfEdge | null = null;
 
       for (var i = 0; i < this.corners.length; i++) {
 
@@ -131,21 +134,26 @@ export class Room {
         var wallTo = firstCorner.wallTo(secondCorner);
         var wallFrom = firstCorner.wallFrom(secondCorner);
 
+        let edge: HalfEdge | null = null;
+
         if (wallTo) {
-          var edge = new HalfEdge(this, wallTo, true);
+          edge = new HalfEdge(this, wallTo, true);
         } else if (wallFrom) {
-          var edge = new HalfEdge(this, wallFrom, false);
+          edge = new HalfEdge(this, wallFrom, false);
         } else {
           // something horrible has happened
           console.log("corners arent connected by a wall, uh oh");
+          continue;
         }
 
         if (i == 0) {
           firstEdge = edge;
         } else {
           edge.prev = prevEdge;
-          prevEdge.next = edge;
-          if (i + 1 == this.corners.length) {
+          if (prevEdge) {
+            prevEdge.next = edge;
+          }
+          if (i + 1 == this.corners.length && firstEdge) {
             firstEdge.prev = edge;
             edge.next = firstEdge;
           }

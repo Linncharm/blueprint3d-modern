@@ -14,10 +14,10 @@ import type { Wall } from './wall';
 export class HalfEdge {
 
     /** The successor edge in CCW ??? direction. */
-    public next: HalfEdge;
+    public next: HalfEdge | null = null;
 
     /** The predecessor edge in CCW ??? direction. */
-    public prev: HalfEdge;
+    public prev: HalfEdge | null = null;
 
     /** */
     public offset: number;
@@ -26,7 +26,7 @@ export class HalfEdge {
     public height: number;
 
     /** used for intersection testing... not convinced this belongs here */
-    public plane: THREE.Mesh = null;
+    public plane: THREE.Mesh | null = null;
 
     /** transform from world coords to wall planes (z=0) */
     public interiorTransform = new THREE.Matrix4();
@@ -41,7 +41,7 @@ export class HalfEdge {
     private invExteriorTransform = new THREE.Matrix4();
 
     /** */
-    public redrawCallbacks = new EventEmitter();
+    public redrawCallbacks = new EventEmitter<void>();
 
     /**
      * Constructs a half edge.
@@ -49,7 +49,7 @@ export class HalfEdge {
      * @param wall The corresponding wall.
      * @param front True if front side.
      */
-    constructor(private room: Room, public wall: Wall, private front: boolean) {
+    constructor(private room: Room | null, public wall: Wall, private front: boolean) {
       this.front = front || false;
 
       this.offset = wall.thickness / 2.0;
@@ -65,7 +65,7 @@ export class HalfEdge {
     /**
      * 
      */
-    public getTexture() {
+    public getTexture(): { url: string; stretch?: boolean; scale: number } {
       if (this.front) {
         return this.wall.frontTexture;
       } else {
@@ -76,7 +76,7 @@ export class HalfEdge {
     /**
      * 
      */
-    public setTexture(textureUrl: string, textureStretch: boolean, textureScale: number) {
+    public setTexture(textureUrl: string, textureStretch: boolean, textureScale: number): void {
       var texture = {
         url: textureUrl,
         stretch: textureStretch,
@@ -93,9 +93,9 @@ export class HalfEdge {
     /** 
      * this feels hacky, but need wall items
      */
-    public generatePlane = function () {
+    public generatePlane(): void {
 
-      function transformCorner(corner) {
+      function transformCorner(corner: { x: number; y: number }): THREE.Vector3 {
         return new THREE.Vector3(corner.x, 0, corner.y);
       }
 
@@ -124,7 +124,7 @@ export class HalfEdge {
       this.plane = new THREE.Mesh(geometry,
         new THREE.MeshBasicMaterial());
       this.plane.visible = false;
-      this.plane.edge = this; // js monkey patch
+      (this.plane as any).edge = this; // js monkey patch
 
       this.computeTransforms(
         this.interiorTransform, this.invInteriorTransform,
@@ -140,7 +140,12 @@ export class HalfEdge {
       return Utils.distance(start.x, start.y, end.x, end.y);
     }
 
-    private computeTransforms(transform, invTransform, start, end) {
+    private computeTransforms(
+      transform: THREE.Matrix4,
+      invTransform: THREE.Matrix4,
+      start: { x: number, y: number },
+      end: { x: number, y: number }
+    ): void {
 
       var v1 = start;
       var v2 = end;
@@ -169,7 +174,7 @@ export class HalfEdge {
         this.interiorEnd().y);
     }
 
-    private getStart() {
+    private getStart(): Corner {
       if (this.front) {
         return this.wall.getStart();
       } else {
@@ -177,7 +182,7 @@ export class HalfEdge {
       }
     }
 
-    private getEnd() {
+    private getEnd(): Corner {
       if (this.front) {
         return this.wall.getEnd();
       } else {
@@ -185,7 +190,7 @@ export class HalfEdge {
       }
     }
 
-    private getOppositeEdge(): HalfEdge {
+    private getOppositeEdge(): HalfEdge | null {
       if (this.front) {
         return this.wall.backEdge;
       } else {
@@ -194,7 +199,7 @@ export class HalfEdge {
     }
 
     // these return an object with attributes x, y
-    public interiorEnd(): {x: number, y: number} {
+    public interiorEnd(): { x: number, y: number } {
       var vec = this.halfAngleVector(this, this.next);
       return {
         x: this.getEnd().x + vec.x,
@@ -202,7 +207,7 @@ export class HalfEdge {
       }
     }
 
-    public interiorStart(): {x: number, y: number} {
+    public interiorStart(): { x: number, y: number } {
       var vec = this.halfAngleVector(this.prev, this);
       return {
         x: this.getStart().x + vec.x,
@@ -210,14 +215,14 @@ export class HalfEdge {
       }
     }
 
-    public interiorCenter(): {x: number, y: number} {
+    public interiorCenter(): { x: number, y: number } {
       return {
         x: (this.interiorStart().x + this.interiorEnd().x) / 2.0,
         y: (this.interiorStart().y + this.interiorEnd().y) / 2.0,
       }
     }
 
-    public exteriorEnd(): {x: number, y: number}  {
+    public exteriorEnd(): { x: number, y: number }  {
       var vec = this.halfAngleVector(this, this.next);
       return {
         x: this.getEnd().x - vec.x,
@@ -225,7 +230,7 @@ export class HalfEdge {
       }
     }
 
-    public exteriorStart(): {x: number, y: number}  {
+    public exteriorStart(): { x: number, y: number }  {
       var vec = this.halfAngleVector(this.prev, this);
       return {
         x: this.getStart().x - vec.x,
@@ -236,7 +241,7 @@ export class HalfEdge {
     /** Get the corners of the half edge.
      * @returns An array of x,y pairs.
      */
-    public corners(): {x: number, y: number}[] {
+    public corners(): { x: number, y: number }[] {
       return [this.interiorStart(), this.interiorEnd(),
         this.exteriorEnd(), this.exteriorStart()];
     }
@@ -244,30 +249,41 @@ export class HalfEdge {
     /** 
      * Gets CCW angle from v1 to v2
      */
-    private halfAngleVector(v1: HalfEdge, v2: HalfEdge): { x: number, y: number } {
+    private halfAngleVector(v1: HalfEdge | null, v2: HalfEdge | null): { x: number, y: number } {
+      if (!v1 && !v2) {
+        return { x: 0, y: 0 };
+      }
       // make the best of things if we dont have prev or next
-      if (!v1) {
-        var v1startX = v2.getStart().x - (v2.getEnd().x - v2.getStart().x);
-        var v1startY = v2.getStart().y - (v2.getEnd().y - v2.getStart().y);
-        var v1endX = v2.getStart().x;
-        var v1endY = v2.getStart().y;
+      var v1startX: number;
+      var v1startY: number;
+      var v1endX: number;
+      var v1endY: number;
+      if (!v1 && v2) {
+        v1startX = v2.getStart().x - (v2.getEnd().x - v2.getStart().x);
+        v1startY = v2.getStart().y - (v2.getEnd().y - v2.getStart().y);
+        v1endX = v2.getStart().x;
+        v1endY = v2.getStart().y;
       } else {
-        var v1startX = <number>v1.getStart().x;
-        var v1startY = <number>v1.getStart().y;
-        var v1endX = v1.getEnd().x;
-        var v1endY = v1.getEnd().y;
+        v1startX = (v1 as HalfEdge).getStart().x;
+        v1startY = (v1 as HalfEdge).getStart().y;
+        v1endX = (v1 as HalfEdge).getEnd().x;
+        v1endY = (v1 as HalfEdge).getEnd().y;
       }
 
-      if (!v2) {
-        var v2startX = v1.getEnd().x;
-        var v2startY = v1.getEnd().y;
-        var v2endX = v1.getEnd().x + (v1.getEnd().x - v1.getStart().x);
-        var v2endY = v1.getEnd().y + (v1.getEnd().y - v1.getStart().y);
+      var v2startX: number;
+      var v2startY: number;
+      var v2endX: number;
+      var v2endY: number;
+      if (!v2 && v1) {
+        v2startX = v1.getEnd().x;
+        v2startY = v1.getEnd().y;
+        v2endX = v1.getEnd().x + (v1.getEnd().x - v1.getStart().x);
+        v2endY = v1.getEnd().y + (v1.getEnd().y - v1.getStart().y);
       } else {
-        var v2startX = v2.getStart().x;
-        var v2startY = v2.getStart().y;
-        var v2endX = v2.getEnd().x;
-        var v2endY = v2.getEnd().y;
+        v2startX = (v2 as HalfEdge).getStart().x;
+        v2startY = (v2 as HalfEdge).getStart().y;
+        v2endX = (v2 as HalfEdge).getEnd().x;
+        v2endY = (v2 as HalfEdge).getEnd().y;
       }
 
       // CCW angle between edges

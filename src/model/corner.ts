@@ -32,7 +32,7 @@ export class Corner {
      * @param y Y coordinate.
      * @param id An optional unique id. If not set, created internally.
      */
-    constructor(private floorplan: Floorplan, public x: number, public y: number, public id?: string) {
+    constructor(private floorplan: Floorplan, public x: number, public y: number, public id: string = Utils.guid()) {
       this.id = id || Utils.guid();
     }
 
@@ -149,7 +149,7 @@ export class Corner {
      * @returns Array of corners.
      */
     public adjacentCorners(): Corner[] {
-      var retArray = [];
+      var retArray: Corner[] = [];
       for (var i = 0; i < this.wallStarts.length; i++) {
         retArray.push(this.wallStarts[i].getEnd());
       }
@@ -314,8 +314,8 @@ export class Corner {
     /** Ensure we do not have duplicate walls (i.e. same start and end points) */
     private removeDuplicateWalls() {
       // delete the wall between these corners, if it exists
-      var wallEndpoints = {};
-      var wallStartpoints = {};
+      var wallEndpoints: Record<string, boolean> = {};
+      var wallStartpoints: Record<string, boolean> = {};
       for (var i = this.wallStarts.length - 1; i >= 0; i--) {
         if (this.wallStarts[i].getEnd() === this) {
           // remove zero length wall
