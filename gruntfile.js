@@ -4,7 +4,7 @@ module.exports = function (grunt) {
 
   var globalConfig = {
     moduleName: "blueprint3d",
-    sources: ["src/*.ts", "src/*/*.ts"],
+    sources: ["src/*.ts", "src/*/*.ts", "!src/*-modern.ts", "!src/*/*-modern.ts", "!src/index.ts", "!src/test-utils.ts", "!src/core/events.ts"],
     outDir: "dist",
     docDir: "doc",
     exampleDir: "example/js/"
