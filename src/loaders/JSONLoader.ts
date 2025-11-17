@@ -221,6 +221,9 @@ export class JSONLoader {
       geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvsArray, 2));
     }
 
+    // Set indices (required for raycaster to work properly)
+    geometry.setIndex(indices);
+
     // Compute normals if not provided
     if (normalsArray.length === 0) {
       geometry.computeVertexNormals();
@@ -233,8 +236,12 @@ export class JSONLoader {
     console.log('JSONLoader parsed geometry:', {
       vertexCount: positions.length / 3,
       faceCount: indices.length / 3,
+      indexCount: indices.length,
+      hasIndex: !!geometry.index,
       boundingBox: geometry.boundingBox,
-      hasMaterials: materials.length > 0
+      hasMaterials: materials.length > 0,
+      materialCount: materials.length,
+      materials: materials
     });
 
     return { geometry, materials };
@@ -271,6 +278,16 @@ export class JSONLoader {
     }
 
     // Create MeshPhongMaterial by default
-    return new THREE.MeshPhongMaterial(params);
+    const material = new THREE.MeshPhongMaterial(params);
+
+    console.log('Created material:', {
+      type: material.type,
+      isMaterial: material instanceof THREE.Material,
+      color: material.color,
+      hasMap: !!material.map,
+      mapUrl: mat.mapDiffuse
+    });
+
+    return material;
   }
 }

@@ -117,20 +117,49 @@ export class Scene {
      * @param scale The initial scaling.
      * @param fixed True if fixed.
      */
-    public addItem(itemType: number, fileName: string, metadata, position: THREE.Vector3, rotation: number, scale: THREE.Vector3, fixed: boolean) {
+    public addItem(itemType: number, fileName: string, metadata, position?: THREE.Vector3, rotation?: number, scale?: THREE.Vector3, fixed?: boolean) {
       itemType = itemType || 1;
+      console.log('addItem called with:', {
+        position: position,
+        rotation: rotation,
+        scale: scale,
+        fixed: fixed
+      });
       var scope = this;
       var loaderCallback = function (geometry: THREE.BufferGeometry, materials: THREE.Material[]) {
+        // TEMPORARY: Force bright color for debugging visibility
+        const debugMat = new THREE.MeshBasicMaterial({
+          color: 0xff00ff,  // Magenta
+          side: THREE.DoubleSide
+        });
+
+        console.log('Creating item with materials:', {
+          loadedMaterials: materials.length,
+          usingDebugMaterial: true
+        });
+
         // Custom JSONLoader already returns BufferGeometry
         var item = new (Factory.getClass(itemType))(
           scope.model,
           metadata, geometry,
-          materials,
+          [debugMat],  // TEMPORARY: Use debug material
           position, rotation, scale
         );
         item.fixed = fixed || false;
         scope.items.push(item);
         scope.add(item);
+
+        console.log('Item added to scene:', {
+          itemsCount: scope.items.length,
+          itemType: item.constructor.name,
+          itemVisible: item.visible,
+          itemInSceneChildren: scope.scene.children.includes(item),
+          itemPosition: item.position,
+          itemScale: item.scale,
+          sceneChildrenCount: scope.scene.children.length
+        });
+
+
         item.initObject();
         scope.itemLoadedCallbacks.fire(item);
       }
