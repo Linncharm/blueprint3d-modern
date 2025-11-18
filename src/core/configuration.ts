@@ -1,4 +1,4 @@
-import { dimInch } from './dimensioning.js'
+import { dimInch } from './dimensioning'
 
 // GENERAL:
 

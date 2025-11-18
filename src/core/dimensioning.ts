@@ -1,4 +1,4 @@
-import { Configuration, configDimUnit } from './configuration.js'
+import { Configuration, configDimUnit } from './configuration'
 
 /** Dimensioning in Inch. */
 export const dimInch: string = 'inch'
