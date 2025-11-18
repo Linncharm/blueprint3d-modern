@@ -1,43 +1,48 @@
+import * as THREE from 'three';
 import { Floor } from './floor';
 import { Edge } from './edge';
+import type { Floorplan as FloorplanModel } from '../model/floorplan';
+import type { Controls } from './controls';
 
-export var Floorplan = function (scene, floorplan, controls) {
+export class FloorplanThree {
+  public readonly scene: THREE.Scene;
+  public readonly floorplan: FloorplanModel;
+  public readonly controls: Controls;
+  public floors: Floor[] = [];
+  public edges: Edge[] = [];
 
-  var scope = this;
+  constructor(scene: THREE.Scene, floorplan: FloorplanModel, controls: Controls) {
+    this.scene = scene;
+    this.floorplan = floorplan;
+    this.controls = controls;
 
-  this.scene = scene;
-  this.floorplan = floorplan;
-  this.controls = controls;
+    this.floorplan.fireOnUpdatedRooms(this.redraw.bind(this));
+  }
 
+  private redraw(): void {
+    // clear scene
+    this.floors.forEach((floor) => {
+      floor.removeFromScene();
+    });
+
+    this.edges.forEach((edge) => {
+      edge.remove();
+    });
     this.floors = [];
     this.edges = [];
 
-    floorplan.fireOnUpdatedRooms(redraw);
+    // draw floors
+    this.floorplan.getRooms().forEach((room) => {
+      const threeFloor = new Floor(this.scene, room);
+      this.floors.push(threeFloor);
+      threeFloor.addToScene();
+    });
 
-    function redraw() {
-      // clear scene
-      scope.floors.forEach((floor) => {
-        floor.removeFromScene();
-      });
-
-      scope.edges.forEach((edge) => {
-        edge.remove();
-      });
-      scope.floors = [];
-      scope.edges = [];
-
-      // draw floors
-     scope.floorplan.getRooms().forEach((room) => {
-        var threeFloor = new Floor(scene, room);
-        scope.floors.push(threeFloor);
-        threeFloor.addToScene();
-      });
-
-      // draw edges
-      scope.floorplan.wallEdges().forEach((edge) => {
-        var threeEdge = new Edge(
-          scene, edge, scope.controls);
-        scope.edges.push(threeEdge);
-      });
-    }
+    // draw edges
+    this.floorplan.wallEdges().forEach((edge) => {
+      const threeEdge = new Edge(
+        this.scene, edge, this.controls);
+      this.edges.push(threeEdge);
+    });
+  }
 }

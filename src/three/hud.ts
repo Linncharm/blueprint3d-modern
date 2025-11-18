@@ -1,162 +1,166 @@
 import * as THREE from 'three';
+import type { Item } from '../items/item';
+import type { Main } from './main';
 
 /**
  * Drawings on "top" of the scene. e.g. rotate arrows
  */
-export var HUD = function (three) {
-  var scope = this;
-  var three = three;
-  var scene = new THREE.Scene();
+export class HUD {
+  private readonly three: Main;
+  private readonly scene: THREE.Scene;
+  private selectedItem: Item | null = null;
+  private rotating = false;
+  private mouseover = false;
+  private readonly tolerance = 10;
+  private readonly height = 5;
+  private readonly distance = 20;
+  private readonly color = "#ffffff";
+  private readonly hoverColor = "#f1c40f";
+  private activeObject: THREE.Object3D | null = null;
 
-    var selectedItem = null;
+  constructor(three: Main) {
+    this.three = three;
+    this.scene = new THREE.Scene();
+    this.init();
+  }
 
-    var rotating = false;
-    var mouseover = false;
+  public getScene(): THREE.Scene {
+    return this.scene;
+  }
 
-    var tolerance = 10;
-    var height = 5;
-    var distance = 20;
-    var color = "#ffffff";
-    var hoverColor = "#f1c40f";
+  public getObject(): THREE.Object3D | null {
+    return this.activeObject;
+  }
 
-    var activeObject = null;
+  private init(): void {
+    this.three.itemSelectedCallbacks.add(this.itemSelected.bind(this));
+    this.three.itemUnselectedCallbacks.add(this.itemUnselected.bind(this));
+  }
 
-    this.getScene = function () {
-      return scene;
+  private resetSelectedItem(): void {
+    this.selectedItem = null;
+    if (this.activeObject) {
+      this.scene.remove(this.activeObject);
+      this.activeObject = null;
     }
+  }
 
-    this.getObject = function () {
-      return activeObject;
-    }
-
-    function init() {
-      three.itemSelectedCallbacks.add(itemSelected);
-      three.itemUnselectedCallbacks.add(itemUnselected);
-    }
-
-    function resetSelectedItem() {
-      selectedItem = null;
-      if (activeObject) {
-        scene.remove(activeObject);
-        activeObject = null;
+  private itemSelected(item: Item): void {
+    if (this.selectedItem !== item) {
+      this.resetSelectedItem();
+      if (item.allowRotate && !item.fixed) {
+        this.selectedItem = item;
+        this.activeObject = this.makeObject(this.selectedItem);
+        this.scene.add(this.activeObject);
       }
     }
+  }
 
-    function itemSelected(item) {
-      if (selectedItem != item) {
-        resetSelectedItem();
-        if (item.allowRotate && !item.fixed) {
-          selectedItem = item;
-          activeObject = makeObject(selectedItem);
-          scene.add(activeObject);
+  private itemUnselected(): void {
+    this.resetSelectedItem();
+  }
+
+  public setRotating(isRotating: boolean): void {
+    this.rotating = isRotating;
+    this.setColor();
+  }
+
+  public setMouseover(isMousedOver: boolean): void {
+    this.mouseover = isMousedOver;
+    this.setColor();
+  }
+
+  private setColor(): void {
+    if (this.activeObject) {
+      this.activeObject.children.forEach((obj) => {
+        if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
+          (obj.material as THREE.Material & { color?: THREE.Color }).color?.set(this.getColor());
         }
-      }
-    }
-
-    function itemUnselected() {
-      resetSelectedItem();
-    }
-
-    this.setRotating = function (isRotating) {
-      rotating = isRotating;
-      setColor();
-    }
-
-    this.setMouseover = function (isMousedOver) {
-      mouseover = isMousedOver;
-      setColor();
-    }
-
-    function setColor() {
-      if (activeObject) {
-        activeObject.children.forEach((obj) => {
-          obj.material.color.set(getColor());
-        });
-      }
-      three.needsUpdate();
-    }
-
-    function getColor() {
-      return (mouseover || rotating) ? hoverColor : color;
-    }
-
-    this.update = function () {
-      if (activeObject) {
-        activeObject.rotation.y = selectedItem.rotation.y;
-        activeObject.position.x = selectedItem.position.x;
-        activeObject.position.z = selectedItem.position.z;
-      }
-    }
-
-    function makeLineGeometry(item) {
-      var geometry = new THREE.BufferGeometry();
-
-      var positions = new Float32Array([
-        0, 0, 0,
-        rotateVector(item).x, rotateVector(item).y, rotateVector(item).z
-      ]);
-
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-      return geometry;
-    }
-
-    function rotateVector(item) {
-      var vec = new THREE.Vector3(0, 0,
-        Math.max(item.halfSize.x, item.halfSize.z) + 1.4 + distance);
-      return vec;
-    }
-
-    function makeLineMaterial(rotating) {
-      var mat = new THREE.LineBasicMaterial({
-        color: getColor(),
-        linewidth: 3
       });
-      return mat;
     }
+    this.three.needsUpdate();
+  }
 
-    function makeCone(item) {
-      var coneGeo = new THREE.CylinderGeometry(5, 0, 10);
-      var coneMat = new THREE.MeshBasicMaterial({
-        color: getColor()
-      });
-      var cone = new THREE.Mesh(coneGeo, coneMat);
-      cone.position.copy(rotateVector(item));
+  private getColor(): string {
+    return (this.mouseover || this.rotating) ? this.hoverColor : this.color;
+  }
 
-      cone.rotation.x = -Math.PI / 2.0;
-
-      return cone;
+  public update(): void {
+    if (this.activeObject && this.selectedItem) {
+      this.activeObject.rotation.y = this.selectedItem.rotation.y;
+      this.activeObject.position.x = this.selectedItem.position.x;
+      this.activeObject.position.z = this.selectedItem.position.z;
     }
+  }
 
-    function makeSphere(item) {
-      var geometry = new THREE.SphereGeometry(4, 16, 16);
-      var material = new THREE.MeshBasicMaterial({
-        color: getColor()
-      });
-      var sphere = new THREE.Mesh(geometry, material);
-      return sphere;
-    }
+  private makeLineGeometry(item: Item): THREE.BufferGeometry {
+    const geometry = new THREE.BufferGeometry();
 
-    function makeObject(item) {
-      var object = new THREE.Object3D();
-      var line = new THREE.Line(
-        makeLineGeometry(item),
-        makeLineMaterial(scope.rotating));
+    const rotVec = this.rotateVector(item);
+    const positions = new Float32Array([
+      0, 0, 0,
+      rotVec.x, rotVec.y, rotVec.z
+    ]);
 
-      var cone = makeCone(item);
-      var sphere = makeSphere(item);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-      object.add(line);
-      object.add(cone);
-      object.add(sphere);
+    return geometry;
+  }
 
-      object.rotation.y = item.rotation.y;
-      object.position.x = item.position.x;
-      object.position.z = item.position.z;
-      object.position.y = height;
+  private rotateVector(item: Item): THREE.Vector3 {
+    const vec = new THREE.Vector3(0, 0,
+      Math.max(item.halfSize.x, item.halfSize.z) + 1.4 + this.distance);
+    return vec;
+  }
 
-      return object;
-    }
+  private makeLineMaterial(): THREE.LineBasicMaterial {
+    const mat = new THREE.LineBasicMaterial({
+      color: this.getColor(),
+      linewidth: 3
+    });
+    return mat;
+  }
 
-  init();
+  private makeCone(item: Item): THREE.Mesh {
+    const coneGeo = new THREE.CylinderGeometry(5, 0, 10);
+    const coneMat = new THREE.MeshBasicMaterial({
+      color: this.getColor()
+    });
+    const cone = new THREE.Mesh(coneGeo, coneMat);
+    cone.position.copy(this.rotateVector(item));
+
+    cone.rotation.x = -Math.PI / 2.0;
+
+    return cone;
+  }
+
+  private makeSphere(): THREE.Mesh {
+    const geometry = new THREE.SphereGeometry(4, 16, 16);
+    const material = new THREE.MeshBasicMaterial({
+      color: this.getColor()
+    });
+    const sphere = new THREE.Mesh(geometry, material);
+    return sphere;
+  }
+
+  private makeObject(item: Item): THREE.Object3D {
+    const object = new THREE.Object3D();
+    const line = new THREE.Line(
+      this.makeLineGeometry(item),
+      this.makeLineMaterial());
+
+    const cone = this.makeCone(item);
+    const sphere = this.makeSphere();
+
+    object.add(line);
+    object.add(cone);
+    object.add(sphere);
+
+    object.rotation.y = item.rotation.y;
+    object.position.x = item.position.x;
+    object.position.z = item.position.z;
+    object.position.y = this.height;
+
+    return object;
+  }
 }

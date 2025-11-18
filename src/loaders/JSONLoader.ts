@@ -327,7 +327,9 @@ export class JSONLoader {
       const loader = new THREE.TextureLoader();
       // Prepend the texture path to the texture filename
       const textureUrl = this.texturePath + mat.mapDiffuse;
-      params.map = loader.load(textureUrl);
+      const texture = loader.load(textureUrl);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      params.map = texture;
     }
 
     // Create MeshPhongMaterial by default

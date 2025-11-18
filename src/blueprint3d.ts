@@ -24,14 +24,14 @@ export class Blueprint3d {
 
   private three: any; // Main;
 
-  private floorplanner: Floorplanner;
+  private floorplanner?: Floorplanner;
 
   /** Creates an instance.
    * @param options The initialization options.
    */
   constructor(options: Options) {
     this.model = new Model(options.textureDir || '');
-    this.three = new Main(this.model, options.threeElement || '', '', {});
+    this.three = new Main(this.model, options.threeElement || document.body, undefined, {});
 
     if (!options.widget) {
       this.floorplanner = new Floorplanner(options.floorplannerElement || '', this.model.floorplan);

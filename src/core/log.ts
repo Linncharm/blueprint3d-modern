@@ -62,7 +62,7 @@ export function log(context: ELogContext, level: ELogLevel, message: string) {
     return;
   }
 
-  var tPrefix = "";
+  let tPrefix = "";
   switch (level) {
     case ELogLevel.Information:
       tPrefix = "[INFO_] ";

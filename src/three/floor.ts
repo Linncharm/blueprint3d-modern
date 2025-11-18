@@ -1,101 +1,111 @@
 import * as THREE from 'three';
+import type { Room } from '../model/room';
 
-export var Floor = function (scene, room) {
+export class Floor {
+  public readonly room: Room;
+  private readonly scene: THREE.Scene;
+  private floorPlane: THREE.Mesh | null = null;
+  private roofPlane: THREE.Mesh | null = null;
 
-  var scope = this;
+  constructor(scene: THREE.Scene, room: Room) {
+    this.scene = scene;
+    this.room = room;
+    this.init();
+  }
 
-  this.room = room;
-  var scene = scene;
+  private init(): void {
+    this.room.fireOnFloorChange(this.redraw.bind(this));
+    this.floorPlane = this.buildFloor();
+    // roofs look weird, so commented out
+    // this.roofPlane = this.buildRoof();
+  }
 
-    var floorPlane = null;
-    var roofPlane = null;
+  private redraw(): void {
+    this.removeFromScene();
+    this.floorPlane = this.buildFloor();
+    this.addToScene();
+  }
 
-    init();
+  private buildFloor(): THREE.Mesh {
+    const textureSettings = this.room.getTexture();
+    // setup texture
+    const textureLoader = new THREE.TextureLoader();
+    const floorTexture = textureLoader.load(textureSettings.url);
+    floorTexture.wrapS = THREE.RepeatWrapping;
+    floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set(1, 1);
+    floorTexture.colorSpace = THREE.SRGBColorSpace;
+    const floorMaterialTop = new THREE.MeshPhongMaterial({
+      map: floorTexture,
+      side: THREE.DoubleSide,
+      // ambient: 0xffffff, TODO_Ekki
+      color: 0xffffff, // Changed from 0xcccccc to 0xffffff for brighter floor
+      specular: 0x0a0a0a
+    });
 
-    function init() {
-      scope.room.fireOnFloorChange(redraw);
-      floorPlane = buildFloor();
-      // roofs look weird, so commented out
-      //roofPlane = buildRoof();
+    const textureScale = textureSettings.scale;
+    // http://stackoverflow.com/questions/19182298/how-to-texture-a-three-js-mesh-created-with-shapegeometry
+    // scale down coords to fit 0 -> 1, then rescale
+
+    const points: THREE.Vector2[] = [];
+    this.room.interiorCorners.forEach((corner) => {
+      points.push(new THREE.Vector2(
+        corner.x / textureScale,
+        corner.y / textureScale));
+    });
+    const shape = new THREE.Shape(points);
+
+    const geometry = new THREE.ShapeGeometry(shape);
+
+    const floor = new THREE.Mesh(geometry, floorMaterialTop);
+
+    floor.rotation.set(Math.PI / 2, 0, 0);
+    floor.scale.set(textureScale, textureScale, textureScale);
+    floor.receiveShadow = true;
+    floor.castShadow = false;
+    return floor;
+  }
+
+  private buildRoof(): THREE.Mesh {
+    // setup texture
+    const roofMaterial = new THREE.MeshBasicMaterial({
+      side: THREE.FrontSide,
+      color: 0xe5e5e5
+    });
+
+    const points: THREE.Vector2[] = [];
+    this.room.interiorCorners.forEach((corner) => {
+      points.push(new THREE.Vector2(
+        corner.x,
+        corner.y));
+    });
+    const shape = new THREE.Shape(points);
+    const geometry = new THREE.ShapeGeometry(shape);
+    const roof = new THREE.Mesh(geometry, roofMaterial);
+
+    roof.rotation.set(Math.PI / 2, 0, 0);
+    roof.position.y = 250;
+    return roof;
+  }
+
+  public addToScene(): void {
+    if (this.floorPlane) {
+      this.scene.add(this.floorPlane);
     }
+    // if (this.roofPlane) {
+    //   this.scene.add(this.roofPlane);
+    // }
+    // hack so we can do intersect testing
+    this.scene.add(this.room.floorPlane);
+  }
 
-    function redraw() {
-      scope.removeFromScene();
-      floorPlane = buildFloor();
-      scope.addToScene();
+  public removeFromScene(): void {
+    if (this.floorPlane) {
+      this.scene.remove(this.floorPlane);
     }
-
-    function buildFloor() {
-      var textureSettings = scope.room.getTexture();
-      // setup texture
-      var textureLoader = new THREE.TextureLoader();
-      var floorTexture = textureLoader.load(textureSettings.url);
-      floorTexture.wrapS = THREE.RepeatWrapping;
-      floorTexture.wrapT = THREE.RepeatWrapping;
-      floorTexture.repeat.set(1, 1);
-      var floorMaterialTop = new THREE.MeshPhongMaterial({
-        map: floorTexture,
-        side: THREE.DoubleSide,
-        // ambient: 0xffffff, TODO_Ekki
-        color: 0xcccccc,
-        specular: 0x0a0a0a
-      });
-
-      var textureScale = textureSettings.scale;
-      // http://stackoverflow.com/questions/19182298/how-to-texture-a-three-js-mesh-created-with-shapegeometry
-      // scale down coords to fit 0 -> 1, then rescale
-
-      var points = [];
-      scope.room.interiorCorners.forEach((corner) => {
-        points.push(new THREE.Vector2(
-          corner.x / textureScale,
-          corner.y / textureScale));
-      });
-      var shape = new THREE.Shape(points);
-
-      var geometry = new THREE.ShapeGeometry(shape);
-
-      var floor = new THREE.Mesh(geometry, floorMaterialTop);
-
-      floor.rotation.set(Math.PI / 2, 0, 0);
-      floor.scale.set(textureScale, textureScale, textureScale);
-      floor.receiveShadow = true;
-      floor.castShadow = false;
-      return floor;
-    }
-
-    function buildRoof() {
-      // setup texture
-      var roofMaterial = new THREE.MeshBasicMaterial({
-        side: THREE.FrontSide,
-        color: 0xe5e5e5
-      });
-
-      var points = [];
-      scope.room.interiorCorners.forEach((corner) => {
-        points.push(new THREE.Vector2(
-          corner.x,
-          corner.y));
-      });
-      var shape = new THREE.Shape(points);
-      var geometry = new THREE.ShapeGeometry(shape);
-      var roof = new THREE.Mesh(geometry, roofMaterial);
-
-      roof.rotation.set(Math.PI / 2, 0, 0);
-      roof.position.y = 250;
-      return roof;
-    }
-
-    this.addToScene = function () {
-      scene.add(floorPlane);
-      //scene.add(roofPlane);
-      // hack so we can do intersect testing
-      scene.add(room.floorPlane);
-    }
-
-  this.removeFromScene = function () {
-    scene.remove(floorPlane);
-    //scene.remove(roofPlane);
-    scene.remove(room.floorPlane);
+    // if (this.roofPlane) {
+    //   this.scene.remove(this.roofPlane);
+    // }
+    this.scene.remove(this.room.floorPlane);
   }
 }

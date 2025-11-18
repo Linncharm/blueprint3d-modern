@@ -4,8 +4,8 @@ import { WallItem } from './wall_item';
 import { Metadata } from './metadata';
 
 /** */
-export abstract class InWallItem extends WallItem {
-  constructor(model: Model, metadata: Metadata, geometry: THREE.BufferGeometry, material: THREE.Material | THREE.Material[], position: THREE.Vector3, rotation: number, scale: THREE.Vector3) {
+export class InWallItem extends WallItem {
+  constructor(model: Model, metadata: Metadata, geometry: THREE.BufferGeometry, material: THREE.Material | THREE.Material[], position?: THREE.Vector3, rotation?: number, scale?: THREE.Vector3) {
     super(model, metadata, geometry, material, position, rotation, scale);
     this.addToWall = true;
   };
@@ -13,6 +13,6 @@ export abstract class InWallItem extends WallItem {
   /** */
   public getWallOffset() {
     // fudge factor so it saves to the right wall
-    return -this.currentWallEdge.offset + 0.5;
+    return -this.currentWallEdge!.offset + 0.5;
   }
 }

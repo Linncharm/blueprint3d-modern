@@ -81,6 +81,9 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vite:
         specifier: ^7.2.2
         version: 7.2.2(@types/node@24.10.1)(terser@5.44.1)(tsx@4.20.6)
@@ -2979,6 +2982,11 @@ packages:
   typescript@1.8.10:
     resolution: {integrity: sha512-amAjhGr2ZKUcd3OpqmSWbyz57bveJcwLdVp4XY31zR3Lylq0ZG8MHAX4IpoJ5AypkdkKkMRRVoqY6lKWrR9uPQ==}
     engines: {node: '>=0.8.0'}
+    hasBin: true
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
     hasBin: true
 
   uglify-js@2.2.5:
@@ -6387,6 +6395,8 @@ snapshots:
   typescript@1.6.2: {}
 
   typescript@1.8.10: {}
+
+  typescript@5.9.3: {}
 
   uglify-js@2.2.5:
     dependencies:

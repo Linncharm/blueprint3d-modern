@@ -1,3 +1,4 @@
 [submodule "legacy"]
 	path = legacy
 	url = https://github.com/furnishup/blueprint3d.git
+	branch = master

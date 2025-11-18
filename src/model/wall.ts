@@ -23,10 +23,10 @@ export class Wall {
     private id: string;
 
     /** Front is the plane from start to end. */
-    public frontEdge: HalfEdge = null;
+    public frontEdge: HalfEdge | null = null;
 
     /** Back is the plane from end to start. */
-    public backEdge: HalfEdge = null;
+    public backEdge: HalfEdge | null = null;
 
     /** */
     public orphan = false;
@@ -50,13 +50,13 @@ export class Wall {
     public height = Configuration.getNumericValue(configWallHeight);
 
     /** Actions to be applied after movement. */
-    private moved_callbacks = new EventEmitter();
+    private moved_callbacks = new EventEmitter<void>();
 
     /** Actions to be applied on removal. */
-    private deleted_callbacks = new EventEmitter();
+    private deleted_callbacks = new EventEmitter<Wall>();
 
     /** Actions to be applied explicitly. */
-    private action_callbacks = new EventEmitter();
+    private action_callbacks = new EventEmitter<unknown>();
 
     /** 
      * Constructs a new wall.
@@ -80,42 +80,42 @@ export class Wall {
       this.orphan = false;
     }
 
-    private snapToAxis(tolerance: number) {
+    public snapToAxis(tolerance: number): void {
       // order here is important, but unfortunately arbitrary
       this.start.snapToAxis(tolerance);
       this.end.snapToAxis(tolerance);
     }
 
-    public fireOnMove(func) {
+    public fireOnMove(func: () => void): void {
       this.moved_callbacks.add(func);
     }
 
-    public fireOnDelete(func) {
+    public fireOnDelete(func: (wall: Wall) => void): void {
       this.deleted_callbacks.add(func);
     }
 
-    public dontFireOnDelete(func) {
+    public dontFireOnDelete(func: (wall: Wall) => void): void {
       this.deleted_callbacks.remove(func);
     }
 
-    public fireOnAction(func) {
+    public fireOnAction(func: (action: unknown) => void): void {
       this.action_callbacks.add(func)
     }
 
-    public fireAction(action) {
+    public fireAction(action: unknown): void {
       this.action_callbacks.fire(action)
     }
 
-    private relativeMove(dx: number, dy: number) {
+    public relativeMove(dx: number, dy: number): void {
       this.start.relativeMove(dx, dy);
       this.end.relativeMove(dx, dy);
     }
 
-    public fireMoved() {
+    public fireMoved(): void {
       this.moved_callbacks.fire();
     }
 
-    public fireRedraw() {
+    public fireRedraw(): void {
       if (this.frontEdge) {
         this.frontEdge.redrawCallbacks.fire();
       }
@@ -148,20 +148,20 @@ export class Wall {
       return this.end.getY();
     }
 
-    public remove() {
+    public remove(): void {
       this.start.detachWall(this);
       this.end.detachWall(this);
       this.deleted_callbacks.fire(this);
     }
 
-    public setStart(corner: Corner) {
+    public setStart(corner: Corner): void {
       this.start.detachWall(this);
       corner.attachStart(this);
       this.start = corner;
       this.fireMoved();
     }
 
-    public setEnd(corner: Corner) {
+    public setEnd(corner: Corner): void {
       this.end.detachWall(this);
       corner.attachEnd(this);
       this.end = corner;
@@ -178,13 +178,14 @@ export class Wall {
      * @param corner The given corner.
      * @returns The opposite corner.
      */
-    private oppositeCorner(corner: Corner): Corner {
+    private oppositeCorner(corner: Corner): Corner | undefined {
       if (this.start === corner) {
         return this.end;
       } else if (this.end === corner) {
         return this.start;
       } else {
         console.log('Wall does not connect to corner');
+        return undefined;
       }
     }
   }
