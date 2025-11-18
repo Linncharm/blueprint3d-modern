@@ -49,7 +49,7 @@ export class Model {
     this.scene = new Scene(this, textureDir)
   }
 
-  private loadSerialized(json: string): void {
+  public loadSerialized(json: string): void {
     // TODO: better documentation on serialization format.
     // TODO: a much better serialization format.
     this.roomLoadingCallbacks.fire()
@@ -60,7 +60,7 @@ export class Model {
     this.roomLoadedCallbacks.fire()
   }
 
-  private exportSerialized(): string {
+  public exportSerialized(): string {
     const items_arr: SerializedItem[] = []
     const objects = this.scene.getItems()
     for (let i = 0; i < objects.length; i++) {
