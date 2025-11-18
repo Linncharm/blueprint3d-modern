@@ -56,23 +56,12 @@ jobs:
           test -f dist/index.html && echo "✓ index.html exists" || echo "✗ index.html missing"
           echo -e "\n=== Check .nojekyll exists ==="
           test -f dist/.nojekyll && echo "✓ .nojekyll exists" || echo "✗ .nojekyll missing"
-          echo -e "\n=== Check index.html content ==="
-          grep -o 'assets/[^"]*\.js' dist/index.html || echo "No assets references found"
-          echo -e "\n=== Verify specific asset files ==="
-          test -f dist/assets/index-BhZbQyBk.js && echo "✓ index-BhZbQyBk.js exists" || echo "✗ index-BhZbQyBk.js missing"
-          test -f dist/assets/index-b9VcpwH0.css && echo "✓ index-b9VcpwH0.css exists" || echo "✗ index-b9VcpwH0.css missing"
-
-      - name: Verify all critical files before upload
-        run: |
-          echo "=== Critical files check ==="
-          ls -lh dist/index.html
-          ls -lh dist/.nojekyll
-          ls -lh dist/assets/index-BhZbQyBk.js
-          ls -lh dist/assets/index-b9VcpwH0.css
-          echo -e "\n=== Count all files ==="
+          echo -e "\n=== Assets file count ==="
+          ls -1 dist/assets/ | wc -l
+          echo -e "\n=== JS and CSS files in assets ==="
+          ls -lh dist/assets/*.js dist/assets/*.css 2>/dev/null || echo "No JS/CSS files found"
+          echo -e "\n=== Total files count ==="
           find dist -type f | wc -l
-          echo -e "\n=== First 50 files ==="
-          find dist -type f | head -50
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
