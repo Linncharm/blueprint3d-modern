@@ -40,7 +40,7 @@ jobs:
         env:
           NODE_ENV: production
 
-      - name: Move index.html to root
+      - name: Move index.html to root and add .nojekyll
         run: |
           mv dist/example/index.html dist/index.html
           rm -rf dist/example
@@ -61,6 +61,12 @@ jobs:
           echo -e "\n=== Verify specific asset files ==="
           test -f dist/assets/index-BhZbQyBk.js && echo "✓ index-BhZbQyBk.js exists" || echo "✗ index-BhZbQyBk.js missing"
           test -f dist/assets/index-b9VcpwH0.css && echo "✓ index-b9VcpwH0.css exists" || echo "✗ index-b9VcpwH0.css missing"
+
+      - name: Create tarball for inspection
+        run: |
+          tar -czf dist-debug.tar.gz -C dist .
+          echo "=== Tarball contents ==="
+          tar -tzf dist-debug.tar.gz | head -30
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
