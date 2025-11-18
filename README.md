@@ -28,7 +28,7 @@ This fork includes significant modernization from the original project:
 
 ### Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20
 - pnpm
 
 ### Installation
