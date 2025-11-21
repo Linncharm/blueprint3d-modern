@@ -4,8 +4,8 @@ import { ChevronRight, ChevronLeft, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
-  activeTab: 'floorplan' | 'design' | 'items' | 'settings'
-  onTabChange: (tab: 'floorplan' | 'design' | 'items' | 'settings') => void
+  activeTab: 'floorplan' | 'design' | 'items' | 'settings' | 'my-floorplans'
+  onTabChange: (tab: 'floorplan' | 'design' | 'items' | 'settings' | 'my-floorplans') => void
   children?: React.ReactNode
   isCollapsed: boolean
   onToggleCollapse: (collapsed: boolean) => void
@@ -17,6 +17,7 @@ export function Sidebar({ activeTab, onTabChange, children, isCollapsed, onToggl
     { id: 'floorplan' as const, label: 'Edit Floorplan' },
     { id: 'design' as const, label: 'Design' },
     { id: 'items' as const, label: 'Add Items' },
+    { id: 'my-floorplans' as const, label: 'My Floorplans' },
     { id: 'settings' as const, label: 'Settings' },
   ]
 

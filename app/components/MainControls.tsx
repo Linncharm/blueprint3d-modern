@@ -3,10 +3,11 @@
 interface MainControlsProps {
   onNew: () => void
   onSave: () => void
+  onDownload: () => void
   onLoad: (event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-export function MainControls({ onNew, onSave, onLoad }: MainControlsProps) {
+export function MainControls({ onNew, onSave, onDownload, onLoad }: MainControlsProps) {
   return (
     <div className="absolute top-5 left-5 flex gap-2">
       <button
@@ -17,9 +18,15 @@ export function MainControls({ onNew, onSave, onLoad }: MainControlsProps) {
       </button>
       <button
         onClick={onSave}
-        className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+        className="px-3 py-1.5 text-sm bg-blue-600 text-white border border-blue-600 rounded hover:bg-blue-700 transition-colors"
       >
         Save Plan
+      </button>
+      <button
+        onClick={onDownload}
+        className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+      >
+        Download Plan
       </button>
       <label className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors cursor-pointer">
         <input

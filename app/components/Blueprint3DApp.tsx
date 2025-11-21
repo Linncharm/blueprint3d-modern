@@ -10,6 +10,8 @@ import { ItemsList } from './ItemsList'
 import { TextureSelector } from './TextureSelector'
 import { Settings } from './Settings'
 import { ViewToggle } from './ViewToggle'
+import { MyFloorplans } from './MyFloorplans'
+import { getStorageService } from '@/services/storage'
 import DefaultFloorplan from '@/public/constants/default.json'
 import ExampleFloorplan from '@/public/constants/example.json'
 
@@ -25,7 +27,7 @@ export function Blueprint3DApp() {
   const floorplannerCanvasRef = useRef<HTMLCanvasElement>(null)
   const blueprint3dRef = useRef<any>(null)
 
-  const [activeTab, setActiveTab] = useState<'floorplan' | 'design' | 'items' | 'settings'>('design')
+  const [activeTab, setActiveTab] = useState<'floorplan' | 'design' | 'items' | 'settings' | 'my-floorplans'>('design')
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [floorplannerMode, setFloorplannerMode] = useState<'move' | 'draw' | 'delete'>('move')
   const [textureType, setTextureType] = useState<'floor' | 'wall' | null>(null)
@@ -210,7 +212,32 @@ export function Blueprint3DApp() {
     blueprint3dRef.current.model.loadSerialized(JSON.stringify(DefaultFloorplan))
   }, [])
 
-  const handleSave = useCallback(() => {
+  // Save to browser storage
+  const handleSave = useCallback(async () => {
+    if (!blueprint3dRef.current) return
+
+    const name = prompt('Enter a name for your floorplan:', `Floorplan ${new Date().toLocaleDateString()}`)
+    if (!name) return
+
+    try {
+      const data = blueprint3dRef.current.model.exportSerialized()
+
+      // Generate a simple thumbnail (optional - can be improved later)
+      const canvas = blueprint3dRef.current.three.renderer.domElement
+      const thumbnail = canvas.toDataURL('image/png', 0.5)
+
+      const storage = getStorageService()
+      await storage.saveFloorplan(name, data, thumbnail)
+
+      alert('Floorplan saved successfully!')
+    } catch (error) {
+      console.error('Failed to save floorplan:', error)
+      alert('Failed to save floorplan. Please try again.')
+    }
+  }, [])
+
+  // Download as file
+  const handleDownload = useCallback(() => {
     if (!blueprint3dRef.current) return
     const data = blueprint3dRef.current.model.exportSerialized()
     const blob = new Blob([data], { type: 'text' })
@@ -222,6 +249,7 @@ export function Blueprint3DApp() {
     document.body.removeChild(a)
   }, [])
 
+  // Load from file
   const handleLoad = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (!blueprint3dRef.current) return
     const files = event.target.files
@@ -237,6 +265,13 @@ export function Blueprint3DApp() {
     reader.readAsText(files[0])
   }, [])
 
+  // Load from saved floorplan
+  const handleLoadFloorplan = useCallback((data: string) => {
+    if (!blueprint3dRef.current) return
+    blueprint3dRef.current.model.loadSerialized(data)
+    setActiveTab('design')
+  }, [])
+
   // Handle unit change
   const handleUnitChange = useCallback((unit: string) => {
     Configuration.setValue(configDimUnit, unit)
@@ -247,7 +282,7 @@ export function Blueprint3DApp() {
   }, [activeTab])
 
   // Tab change
-  const handleTabChange = useCallback((tab: 'floorplan' | 'design' | 'items' | 'settings') => {
+  const handleTabChange = useCallback((tab: 'floorplan' | 'design' | 'items' | 'settings' | 'my-floorplans') => {
     setActiveTab(tab)
     setTextureType(null)
 
@@ -357,7 +392,12 @@ export function Blueprint3DApp() {
         >
           {activeTab === 'design' && (
             <>
-              <MainControls onNew={handleNew} onSave={handleSave} onLoad={handleLoad} />
+              <MainControls
+                onNew={handleNew}
+                onSave={handleSave}
+                onDownload={handleDownload}
+                onLoad={handleLoad}
+              />
               <ViewToggle viewMode={viewMode} onViewChange={handleViewChange} />
               <CameraControls
                 onZoomIn={handleZoomIn}
@@ -409,6 +449,20 @@ export function Blueprint3DApp() {
           style={{ display: activeTab === 'items' ? 'block' : 'none' }}
         >
           {activeTab === 'items' && <ItemsList onItemSelect={handleItemSelect} />}
+        </div>
+
+        {/* My Floorplans */}
+        <div
+          id="my-floorplans"
+          className="w-full h-full overflow-y-auto p-5 bg-gray-50"
+          style={{ display: activeTab === 'my-floorplans' ? 'block' : 'none' }}
+        >
+          {activeTab === 'my-floorplans' && (
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">My Floorplans</h2>
+              <MyFloorplans onLoadFloorplan={handleLoadFloorplan} />
+            </div>
+          )}
         </div>
 
         {/* Settings */}
