@@ -32,6 +32,7 @@ export function Blueprint3DApp() {
   const [currentTarget, setCurrentTarget] = useState<any>(null)
   const [itemsLoading, setItemsLoading] = useState(0)
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   // Initialize Blueprint3d
   useEffect(() => {
@@ -111,6 +112,27 @@ export function Blueprint3DApp() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [activeTab])
+
+  // Handle sidebar collapse/expand
+  useEffect(() => {
+    if (!blueprint3dRef.current) return
+
+    // Wait for the transition to complete (300ms) before resizing
+    const timeoutId = setTimeout(() => {
+      if (activeTab === 'design') {
+        blueprint3dRef.current.three.updateWindowSize()
+      } else if (activeTab === 'floorplan') {
+        blueprint3dRef.current.floorplanner.resizeView()
+      }
+    }, 350) // Slightly longer than the 300ms transition
+
+    return () => clearTimeout(timeoutId)
+  }, [isSidebarCollapsed, activeTab])
+
+  // Handle sidebar toggle
+  const handleSidebarToggle = useCallback((collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed)
+  }, [])
 
   // Camera controls
   const handleZoomIn = useCallback(() => {
@@ -306,7 +328,12 @@ export function Blueprint3DApp() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange}>
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleSidebarToggle}
+      >
         {selectedItem && !textureType && (
           <ContextMenu
             selectedItem={selectedItem}
