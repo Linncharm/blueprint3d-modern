@@ -212,6 +212,83 @@ export function Blueprint3DApp() {
     blueprint3dRef.current.model.loadSerialized(JSON.stringify(DefaultFloorplan))
   }, [])
 
+  // Generate top-down thumbnail
+  const generateTopDownThumbnail = useCallback((): string => {
+    if (!blueprint3dRef.current) return ''
+
+    const three = blueprint3dRef.current.three
+    const camera = three.camera
+    const controls = three.controls
+
+    // Save current camera state
+    const savedPosition = camera.position.clone()
+    const savedTarget = controls.target.clone()
+    const savedRotation = camera.rotation.clone()
+
+    try {
+      // Get floorplan dimensions
+      const center = blueprint3dRef.current.model.floorplan.getCenter()
+      const size = blueprint3dRef.current.model.floorplan.getSize()
+
+      // Calculate distance to fit all rooms in view
+      const maxDim = Math.max(size.x, size.z)
+      const distance = maxDim * 1.8 // Add margin to ensure everything fits
+
+      // Set camera to top-down view
+      controls.target.set(center.x, 0, center.z)
+      camera.position.set(center.x, distance, center.z)
+      camera.lookAt(controls.target)
+      camera.updateProjectionMatrix()
+      controls.update()
+
+      // Force render
+      three.renderer.clear()
+      three.renderer.render(three.scene.getScene(), camera)
+
+      // Capture screenshot and resize to smaller thumbnail
+      const sourceCanvas = three.renderer.domElement
+
+      // Create a smaller canvas for thumbnail (max 400px width/height)
+      const maxSize = 400
+      const aspect = sourceCanvas.width / sourceCanvas.height
+      let thumbnailWidth = maxSize
+      let thumbnailHeight = maxSize
+
+      if (aspect > 1) {
+        thumbnailHeight = maxSize / aspect
+      } else {
+        thumbnailWidth = maxSize * aspect
+      }
+
+      // Create temporary canvas for resizing
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = thumbnailWidth
+      tempCanvas.height = thumbnailHeight
+      const ctx = tempCanvas.getContext('2d')
+
+      if (ctx) {
+        // Draw resized image
+        ctx.drawImage(sourceCanvas, 0, 0, thumbnailWidth, thumbnailHeight)
+        // Use JPEG with quality 0.6 for better compression
+        const thumbnail = tempCanvas.toDataURL('image/jpeg', 0.6)
+        return thumbnail
+      }
+
+      return sourceCanvas.toDataURL('image/jpeg', 0.6)
+    } finally {
+      // Restore camera state
+      camera.position.copy(savedPosition)
+      controls.target.copy(savedTarget)
+      camera.rotation.copy(savedRotation)
+      camera.updateProjectionMatrix()
+      controls.update()
+
+      // Force render to restore view
+      three.renderer.clear()
+      three.renderer.render(three.scene.getScene(), camera)
+    }
+  }, [])
+
   // Save to browser storage
   const handleSave = useCallback(async () => {
     if (!blueprint3dRef.current) return
@@ -222,19 +299,22 @@ export function Blueprint3DApp() {
     try {
       const data = blueprint3dRef.current.model.exportSerialized()
 
-      // Generate a simple thumbnail (optional - can be improved later)
-      const canvas = blueprint3dRef.current.three.renderer.domElement
-      const thumbnail = canvas.toDataURL('image/png', 0.5)
+      // Generate top-down thumbnail
+      const thumbnail = generateTopDownThumbnail()
 
       const storage = getStorageService()
       await storage.saveFloorplan(name, data, thumbnail)
 
-      alert('Floorplan saved successfully!')
+      alert('Floorplan saved successfully! You can find it in "My Floorplans".')
     } catch (error) {
       console.error('Failed to save floorplan:', error)
-      alert('Failed to save floorplan. Please try again.')
+      if (error instanceof Error && error.message === 'QUOTA_EXCEEDED') {
+        alert('Storage is full. Please delete some old floorplans to make space.')
+      } else {
+        alert('Failed to save floorplan. Please try again.')
+      }
     }
-  }, [])
+  }, [generateTopDownThumbnail])
 
   // Download as file
   const handleDownload = useCallback(() => {

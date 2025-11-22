@@ -26,6 +26,128 @@ export interface IStorageService {
   deleteFloorplan(id: string): Promise<void>
 }
 
+// IndexedDB Implementation (Better for large data storage)
+class IndexedDBStorageService implements IStorageService {
+  private readonly DB_NAME = 'blueprint3d_db'
+  private readonly STORE_NAME = 'floorplans'
+  private readonly DB_VERSION = 1
+  private dbPromise: Promise<IDBDatabase> | null = null
+
+  private async getDB(): Promise<IDBDatabase> {
+    if (this.dbPromise) {
+      return this.dbPromise
+    }
+
+    this.dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.DB_NAME, this.DB_VERSION)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result)
+
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          const objectStore = db.createObjectStore(this.STORE_NAME, { keyPath: 'id' })
+          objectStore.createIndex('updatedAt', 'updatedAt', { unique: false })
+          objectStore.createIndex('createdAt', 'createdAt', { unique: false })
+        }
+      }
+    })
+
+    return this.dbPromise
+  }
+
+  async saveFloorplan(name: string, data: string, thumbnail?: string): Promise<FloorplanData> {
+    const db = await this.getDB()
+    const now = Date.now()
+    const newFloorplan: FloorplanData = {
+      id: `floorplan_${now}_${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      data,
+      thumbnail,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readwrite')
+      const store = transaction.objectStore(this.STORE_NAME)
+      const request = store.add(newFloorplan)
+
+      request.onsuccess = () => resolve(newFloorplan)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async getAllFloorplans(): Promise<FloorplanData[]> {
+    const db = await this.getDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readonly')
+      const store = transaction.objectStore(this.STORE_NAME)
+      const request = store.getAll()
+
+      request.onsuccess = () => {
+        const floorplans = request.result as FloorplanData[]
+        resolve(floorplans.sort((a, b) => b.updatedAt - a.updatedAt))
+      }
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async getFloorplan(id: string): Promise<FloorplanData | null> {
+    const db = await this.getDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readonly')
+      const store = transaction.objectStore(this.STORE_NAME)
+      const request = store.get(id)
+
+      request.onsuccess = () => resolve(request.result || null)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async updateFloorplan(id: string, name: string, data: string, thumbnail?: string): Promise<FloorplanData> {
+    const db = await this.getDB()
+    const existing = await this.getFloorplan(id)
+
+    if (!existing) {
+      throw new Error(`Floorplan with id ${id} not found`)
+    }
+
+    const updatedFloorplan: FloorplanData = {
+      ...existing,
+      name,
+      data,
+      thumbnail: thumbnail || existing.thumbnail,
+      updatedAt: Date.now(),
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readwrite')
+      const store = transaction.objectStore(this.STORE_NAME)
+      const request = store.put(updatedFloorplan)
+
+      request.onsuccess = () => resolve(updatedFloorplan)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async deleteFloorplan(id: string): Promise<void> {
+    const db = await this.getDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readwrite')
+      const store = transaction.objectStore(this.STORE_NAME)
+      const request = store.delete(id)
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+    })
+  }
+}
+
 // Local Storage Implementation (Phase 1)
 class LocalStorageService implements IStorageService {
   private readonly STORAGE_KEY = 'blueprint3d_floorplans'
@@ -36,7 +158,30 @@ class LocalStorageService implements IStorageService {
   }
 
   private setFloorplans(floorplans: FloorplanData[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(floorplans))
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(floorplans))
+    } catch (e) {
+      if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+        throw new Error('QUOTA_EXCEEDED')
+      }
+      throw e
+    }
+  }
+
+  getStorageInfo(): { used: number; available: number; total: number } {
+    let used = 0
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        used += localStorage[key].length + key.length
+      }
+    }
+    // Most browsers have 5-10MB limit, we assume 5MB
+    const total = 5 * 1024 * 1024
+    return {
+      used,
+      available: total - used,
+      total
+    }
   }
 
   async saveFloorplan(name: string, data: string, thumbnail?: string): Promise<FloorplanData> {
@@ -135,7 +280,12 @@ class RemoteStorageService implements IStorageService {
 
 // Factory to get the appropriate storage service
 export function getStorageService(): IStorageService {
-  // For Phase 1, use local storage
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    throw new Error('Storage service can only be used in browser environment')
+  }
+
+  // For Phase 1, use IndexedDB (better for large data)
   // For Phase 2, check config or env variable and return RemoteStorageService
   const useRemote = process.env.NEXT_PUBLIC_USE_REMOTE_STORAGE === 'true'
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || ''
@@ -144,5 +294,6 @@ export function getStorageService(): IStorageService {
     return new RemoteStorageService(apiUrl)
   }
 
-  return new LocalStorageService()
+  // Use IndexedDB for local storage (better capacity than localStorage)
+  return new IndexedDBStorageService()
 }
