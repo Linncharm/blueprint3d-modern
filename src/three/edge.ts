@@ -27,7 +27,7 @@ export class Edge {
     this.controls = controls
     this.wall = edge.wall
     this.front = edge.front
-    this.lightMap = this.textureLoader.load('rooms/textures/walllightmap.png')
+    this.lightMap = this.textureLoader.load('/rooms/textures/walllightmap.png')
     this.lightMap.colorSpace = THREE.SRGBColorSpace
     this.init()
   }

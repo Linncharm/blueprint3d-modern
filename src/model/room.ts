@@ -14,7 +14,7 @@ var Polygon = require('polygon')
 
 /** Default texture to be used if nothing is provided. */
 const defaultRoomTexture = {
-  url: 'rooms/textures/hardwood.png',
+  url: '/rooms/textures/hardwood.png',
   scale: 400
 }
 
@@ -41,10 +41,7 @@ export class Room {
   /**
    *  ordered CCW
    */
-  constructor(
-    private floorplan: Floorplan,
-    public corners: Corner[]
-  ) {
+  constructor(private floorplan: Floorplan, public corners: Corner[]) {
     this.updateWalls()
     this.updateInteriorCorners()
     this.generatePlane()

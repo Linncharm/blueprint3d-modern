@@ -7,7 +7,7 @@ import type { HalfEdge } from './half_edge'
 
 /** The default wall texture. */
 const defaultWallTexture = {
-  url: 'rooms/textures/wallmap.png',
+  url: '/rooms/textures/wallmap.png',
   stretch: true,
   scale: 0
 }
@@ -63,10 +63,7 @@ export class Wall {
    * @param start Start corner.
    * @param end End corner.
    */
-  constructor(
-    private start: Corner,
-    private end: Corner
-  ) {
+  constructor(private start: Corner, private end: Corner) {
     this.id = this.getUuid()
 
     this.start.attachStart(this)
