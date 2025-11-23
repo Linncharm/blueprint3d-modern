@@ -62,7 +62,8 @@
     "preview": "vite preview",
     "build:old": "grunt default",
     "build:release": "grunt release",
-    "test:modern": "tsx src/test-utils.ts"
+    "test:modern": "tsx src/test-utils.ts",
+    "ts": "tsc"
   },
   "author": ""
 }
