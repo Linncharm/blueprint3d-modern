@@ -1,6 +1,13 @@
 // Items data
 export const ITEMS = [
   {
+    key: 'klippanSofa',
+    name: 'KLIPPAN Sofa',
+    image: 'rooms/thumbnails/thumbnail_light_fine_wood.jpg',
+    model: 'models/glb/KLIPPAN_simple_draco.glb',
+    type: '1',
+  },
+  {
     key: 'closedDoor',
     name: 'Closed Door',
     image: 'models/thumbnails/thumbnail_Screen_Shot_2014-10-27_at_8.04.12_PM.png',

@@ -5,6 +5,7 @@ import { Factory } from '../items/factory'
 import type { Item } from '../items/item'
 import type { Model } from './model'
 import { JSONLoader } from '../loaders/JSONLoader'
+import { GLBLoader } from '../loaders/GLBLoader'
 
 /**
  * The Scene is a manager of Items and also links to a ThreeJS scene.
@@ -20,7 +21,10 @@ export class Scene {
   public needsUpdate = false
 
   /** The Json loader. */
-  private loader: JSONLoader
+  private jsonLoader: JSONLoader
+
+  /** The GLB loader. */
+  private glbLoader: GLBLoader
 
   /** */
   public itemLoadingCallbacks = new EventEmitter<void>()
@@ -43,9 +47,11 @@ export class Scene {
   ) {
     this.scene = new THREE.Scene()
 
-    // init item loader
+    // init item loaders
     // Use custom JSONLoader for old three.js JSON format models
-    this.loader = new JSONLoader()
+    this.jsonLoader = new JSONLoader()
+    // Use GLBLoader for modern GLB/GLTF models
+    this.glbLoader = new GLBLoader()
   }
 
   /** Adds a non-item, basically a mesh, to the scene.
@@ -181,9 +187,13 @@ export class Scene {
 
     this.itemLoadingCallbacks.fire()
 
+    // Determine which loader to use based on file extension
+    const isGLB = fileName.toLowerCase().endsWith('.glb') || fileName.toLowerCase().endsWith('.gltf')
+    const loader = isGLB ? this.glbLoader : this.jsonLoader
+
     // Wrap in try-catch for better error handling
     try {
-      this.loader.load(
+      loader.load(
         fileName,
         loaderCallback,
         undefined, // TODO_Ekki
@@ -192,7 +202,7 @@ export class Scene {
           alert(
             'Failed to load model: ' +
               fileName +
-              '\n\nThis is a known issue with the old three.js version.\nTry a simpler model or upgrade three.js.'
+              '\n\nPlease check the console for more details.'
           )
           this.itemLoadingCallbacks.fire()
         }
