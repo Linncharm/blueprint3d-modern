@@ -18,6 +18,9 @@ export abstract class WallItem extends Item {
        and grab its edge reference dynamically whenever it needs it.
      */
 
+  /** Store which edge (front/back) this item is on */
+  protected isFrontEdge = true
+
   /** used for finding rotations */
   private refVec = new THREE.Vector2(0, 1.0)
 
@@ -42,6 +45,9 @@ export abstract class WallItem extends Item {
   /** */
   protected backVisible = false
 
+  /** Store bound function reference for proper callback removal */
+  private readonly boundRemoveFromScene: () => void
+
   constructor(
     model: Model,
     metadata: Metadata,
@@ -54,6 +60,9 @@ export abstract class WallItem extends Item {
     super(model, metadata, geometry, material, position, rotation, scale)
 
     this.allowRotate = false
+
+    // Bind function once and store reference
+    this.boundRemoveFromScene = this.removeFromScene.bind(this)
   }
 
   /** Get the closet wall edge.
@@ -169,9 +178,9 @@ export abstract class WallItem extends Item {
 
     // handle subscription to wall being removed
     if (this.currentWallEdge != null) {
-      this.currentWallEdge.wall.dontFireOnDelete(this.removeFromScene.bind(this))
+      this.currentWallEdge.wall.dontFireOnDelete(this.boundRemoveFromScene)
     }
-    wallEdge.wall.fireOnDelete(this.removeFromScene.bind(this))
+    wallEdge.wall.fireOnDelete(this.boundRemoveFromScene)
 
     // find angle between wall normals
     const normal2 = new THREE.Vector2()
@@ -190,11 +199,26 @@ export abstract class WallItem extends Item {
 
     // update currentWall
     this.currentWallEdge = wallEdge
+    this.isFrontEdge = wallEdge.front
     if (this.addToWall) {
       wallEdge.wall.items.push(this)
       this.redrawWall()
     } else {
       wallEdge.wall.onItems.push(this)
+    }
+  }
+
+  /** Update wall edge reference after floorplan updates recreate HalfEdges */
+  public updateWallEdgeReference(): void {
+    if (this.currentWallEdge == null) {
+      return
+    }
+
+    const wall = this.currentWallEdge.wall
+    const newEdge = this.isFrontEdge ? wall.frontEdge : wall.backEdge
+
+    if (newEdge && newEdge !== this.currentWallEdge) {
+      this.currentWallEdge = newEdge
     }
   }
 

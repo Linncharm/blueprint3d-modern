@@ -21,6 +21,10 @@ export class Edge {
 
   public visible = false
 
+  // Store bound function references for proper callback removal
+  private readonly boundRedraw: () => void
+  private readonly boundUpdateVisibility: () => void
+
   constructor(scene: THREE.Scene, edge: HalfEdge, controls: Controls) {
     this.scene = scene
     this.edge = edge
@@ -29,18 +33,23 @@ export class Edge {
     this.front = edge.front
     this.lightMap = this.textureLoader.load('/rooms/textures/walllightmap.png')
     this.lightMap.colorSpace = THREE.SRGBColorSpace
+
+    // Bind functions once and store references
+    this.boundRedraw = this.redraw.bind(this)
+    this.boundUpdateVisibility = this.updateVisibility.bind(this)
+
     this.init()
   }
 
   public remove(): void {
-    this.edge.redrawCallbacks.remove(this.redraw.bind(this))
-    this.controls.cameraMovedCallbacks.remove(this.updateVisibility.bind(this))
+    this.edge.redrawCallbacks.remove(this.boundRedraw)
+    this.controls.cameraMovedCallbacks.remove(this.boundUpdateVisibility)
     this.removeFromScene()
   }
 
   private init(): void {
-    this.edge.redrawCallbacks.add(this.redraw.bind(this))
-    this.controls.cameraMovedCallbacks.add(this.updateVisibility.bind(this))
+    this.edge.redrawCallbacks.add(this.boundRedraw)
+    this.controls.cameraMovedCallbacks.add(this.boundUpdateVisibility)
     this.updateTexture()
     this.updatePlanes()
     this.addToScene()

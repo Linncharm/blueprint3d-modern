@@ -152,6 +152,10 @@ export class Wall {
     this.start.detachWall(this)
     this.end.detachWall(this)
     this.deleted_callbacks.fire(this)
+
+    // Clear items arrays to ensure no stale references
+    this.items = []
+    this.onItems = []
   }
 
   public setStart(corner: Corner): void {
