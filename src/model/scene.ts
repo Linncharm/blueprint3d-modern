@@ -35,6 +35,9 @@ export class Scene {
   /** Item */
   public itemRemovedCallbacks = new EventEmitter<Item>()
 
+  /** Item Load Error */
+  public itemLoadErrorCallbacks = new EventEmitter<{ fileName: string; error: any }>()
+
   /**
    * Constructs a scene.
    * @param model The associated model.
@@ -179,17 +182,12 @@ export class Scene {
         undefined, // TODO_Ekki
         (error: any) => {
           console.error('Error loading model:', fileName, error)
-          alert(
-            'Failed to load model: ' +
-              fileName +
-              '\n\nPlease check the console for more details.'
-          )
-          this.itemLoadingCallbacks.fire()
+          this.itemLoadErrorCallbacks.fire({ fileName, error })
         }
       )
     } catch (e) {
       console.error('Exception loading model:', e)
-      this.itemLoadingCallbacks.fire()
+      this.itemLoadErrorCallbacks.fire({ fileName, error: e })
     }
   }
 }
