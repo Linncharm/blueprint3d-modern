@@ -18,7 +18,8 @@
     "moveWalls": "移动墙壁",
     "drawWalls": "绘制墙壁",
     "deleteWalls": "删除墙壁",
-    "done": "完成"
+    "done": "完成",
+    "escHint": "按\"Esc\"键停止绘制墙壁"
   },
   "viewToggle": {
     "3d": "3D",
@@ -40,7 +41,14 @@
     "deleteButton": "删除",
     "deleteConfirm": "确定要删除此平面图吗?",
     "deleteError": "删除平面图失败",
-    "lastModified": "最后修改"
+    "lastModified": "最后修改",
+    "loadingItem": "正在加载\"{name}\"...",
+    "loadedSuccess": "\"{name}\"加载成功",
+    "downloadingItem": "正在下载\"{name}\"...",
+    "downloadSuccess": "\"{name}\"下载成功",
+    "deletingItem": "正在删除\"{name}\"...",
+    "deleteSuccess": "\"{name}\"删除成功",
+    "savedCount": "已保存 {count} 个平面图"
   },
   "settings": {
     "title": "设置",
@@ -79,6 +87,9 @@
     }
   },
   "items": {
+    "loadingItem": "正在加载\"{name}\"...",
+    "loadedSuccess": "{name} 加载成功",
+    "loadError": "\"{name}\"加载失败",
     "bedOne": "床 - 1",
     "drawerOne": "抽屉 - 1",
     "drawerTwo": "抽屉 - 2",

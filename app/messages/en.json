@@ -18,7 +18,8 @@
     "moveWalls": "Move Walls",
     "drawWalls": "Draw Walls",
     "deleteWalls": "Delete Walls",
-    "done": "Done"
+    "done": "Done",
+    "escHint": "Press the \"Esc\" key to stop drawing walls"
   },
   "viewToggle": {
     "3d": "3D",
@@ -40,7 +41,14 @@
     "deleteButton": "Delete",
     "deleteConfirm": "Are you sure you want to delete this floorplan?",
     "deleteError": "Failed to delete floorplan",
-    "lastModified": "Last modified"
+    "lastModified": "Last modified",
+    "loadingItem": "Loading \"{name}\"...",
+    "loadedSuccess": "\"{name}\" loaded successfully",
+    "downloadingItem": "Downloading \"{name}\"...",
+    "downloadSuccess": "\"{name}\" download successfully",
+    "deletingItem": "Deleting \"{name}\"...",
+    "deleteSuccess": "\"{name}\" deleted successfully",
+    "savedCount": "{count} saved {count, plural, =1 {floorplan} other {floorplans}}"
   },
   "settings": {
     "title": "Settings",
@@ -79,6 +87,9 @@
     }
   },
   "items": {
+    "loadingItem": "Loading \"{name}\"...",
+    "loadedSuccess": "\"{name}\" loaded successfully",
+    "loadError": "Failed to load \"{name}\"",
     "bedOne": "Bed - 1",
     "drawerOne": "Drawer - 1",
     "drawerTwo": "Drawer - 2",
