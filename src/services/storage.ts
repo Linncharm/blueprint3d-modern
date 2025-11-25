@@ -149,6 +149,7 @@ class IndexedDBStorageService implements IStorageService {
 }
 
 // Local Storage Implementation (Kept for backward compatibility)
+ // @ts-ignore
 class LocalStorageService implements IStorageService {
   private readonly STORAGE_KEY = 'blueprint3d_floorplans'
 
