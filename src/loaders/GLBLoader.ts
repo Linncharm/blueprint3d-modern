@@ -127,22 +127,51 @@ export class GLBLoader {
     mergedGeometry.computeBoundingBox()
     mergedGeometry.computeBoundingSphere()
 
-    // Configure materials for visibility
-    materials.forEach((mat) => {
+    // Configure materials for visibility and convert to MeshPhongMaterial if needed
+    const processedMaterials = materials.map((mat) => {
+      // Convert MeshStandardMaterial to MeshPhongMaterial for better compatibility
+      // with the existing lighting setup (no environment map)
+      if (mat instanceof THREE.MeshStandardMaterial) {
+        const phongMat = new THREE.MeshPhongMaterial({
+          color: mat.color,
+          map: mat.map,
+          normalMap: mat.normalMap,
+          emissive: mat.emissive,
+          emissiveMap: mat.emissiveMap,
+          emissiveIntensity: mat.emissiveIntensity,
+          specular: new THREE.Color(0x111111),
+          shininess: 30,
+          side: THREE.DoubleSide,
+          transparent: mat.transparent,
+          opacity: mat.opacity,
+          alphaTest: mat.alphaTest
+        })
+
+        // Copy texture properties
+        if (mat.map) {
+          phongMat.map = mat.map
+        }
+
+        return phongMat
+      }
+
+      // For other materials, just configure side and depth
       mat.side = THREE.DoubleSide
       mat.depthTest = true
       mat.depthWrite = true
+      return mat
     })
 
     console.log('GLBLoader extracted:', {
       vertexCount: mergedGeometry.attributes.position.count,
       hasIndex: !!mergedGeometry.index,
-      materialCount: materials.length,
+      materialCount: processedMaterials.length,
       boundingBox: mergedGeometry.boundingBox,
-      groups: mergedGeometry.groups
+      groups: mergedGeometry.groups,
+      materialTypes: processedMaterials.map((m) => m.type)
     })
 
-    return { geometry: mergedGeometry, materials }
+    return { geometry: mergedGeometry, materials: processedMaterials }
   }
 
   /**
