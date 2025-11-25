@@ -37,6 +37,7 @@
     "downloadButton": "下載",
     "deleteButton": "刪除",
     "deleteConfirm": "確定要刪除此平面圖嗎？",
+    "deleteError": "刪除平面圖失敗",
     "lastModified": "最後修改時間"
   },
   "settings": {
@@ -183,8 +184,10 @@
     "namePlaceholder": "例如：客廳設計",
     "cancel": "取消",
     "save": "儲存",
+    "saving": "正在儲存平面圖...",
     "saveSuccess": "平面圖儲存成功！",
     "saveError": "儲存失敗，請再試一次。",
-    "quotaError": "儲存空間已滿，請刪除一些舊平面圖以釋放空間。"
+    "quotaError": "儲存空間已滿，請刪除一些舊平面圖以釋放空間。",
+    "openSidebar": "開啟側邊欄"
   }
 }

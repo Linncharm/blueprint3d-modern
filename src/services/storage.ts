@@ -262,7 +262,8 @@ class RemoteStorageService implements IStorageService {
     const result = await response.json()
 
     // Transform API response to FloorplanData format
-    if (result.success && result.data) {
+    // API returns { code: 200, data: {...}, message: "success" }
+    if ((result.success || result.code === 200) && result.data) {
       const apiData = result.data
       return {
         id: apiData.id,
@@ -287,7 +288,7 @@ class RemoteStorageService implements IStorageService {
 
     const result = await response.json()
 
-    if (result.success && Array.isArray(result.data)) {
+    if ((result.success || result.code === 200) && Array.isArray(result.data)) {
       return result.data.map((item: any) => ({
         id: item.id,
         name: item.name,
@@ -310,7 +311,7 @@ class RemoteStorageService implements IStorageService {
 
     const result = await response.json()
 
-    if (result.success && result.data) {
+    if ((result.success || result.code === 200) && result.data) {
       const apiData = result.data
       return {
         id: apiData.id,
@@ -343,7 +344,7 @@ class RemoteStorageService implements IStorageService {
 
     const result = await response.json()
 
-    if (result.success && result.data) {
+    if ((result.success || result.code === 200) && result.data) {
       const apiData = result.data
       return {
         id: apiData.id,

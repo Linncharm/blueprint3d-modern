@@ -37,6 +37,7 @@
     "downloadButton": "Download",
     "deleteButton": "Delete",
     "deleteConfirm": "Are you sure you want to delete this floorplan?",
+    "deleteError": "Failed to delete floorplan",
     "lastModified": "Last modified"
   },
   "settings": {
@@ -183,8 +184,10 @@
     "namePlaceholder": "e.g., Living Room Design",
     "cancel": "Cancel",
     "save": "Save",
+    "saving": "Saving floorplan...",
     "saveSuccess": "Floorplan saved successfully!",
     "saveError": "Failed to save floorplan. Please try again.",
-    "quotaError": "Storage is full. Please delete some old floorplans to make space."
+    "quotaError": "Storage is full. Please delete some old floorplans to make space.",
+    "openSidebar": "Open sidebar"
   }
 }
