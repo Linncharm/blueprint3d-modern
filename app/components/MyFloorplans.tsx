@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Trash2, Download, FolderOpen } from 'lucide-react'
-import { getStorageService, FloorplanData } from '@/services/storage'
+import { getStorageService, FloorplanData } from '@src/services/storage'
 import { useTranslations, useLocale } from 'next-intl'
 
 interface MyFloorplansProps {
