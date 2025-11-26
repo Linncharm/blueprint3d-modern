@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Trash2, Download, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
-import { getStorageService, FloorplanData } from '@src/services/storage'
+import { getStorageService, FloorplanData } from '@blueprint3d/services/storage'
 import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 

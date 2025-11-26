@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { FLOOR_TEXTURES, WALL_TEXTURES } from '@src/constants'
+import { FLOOR_TEXTURES, WALL_TEXTURES } from '@blueprint3d/constants'
 import { useTranslations } from 'next-intl'
 
 interface TextureSelectorProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { ITEMS } from '@src/constants'
+import { ITEMS } from '@blueprint3d/constants'
 import { useTranslations } from 'next-intl'
 
 interface ItemsListProps {

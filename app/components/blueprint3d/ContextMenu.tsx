@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTranslations } from 'next-intl'
-import type { Item } from '@src/items/item'
+import type { Item } from '@blueprint3d/items/item'
 
-import { Configuration, configDimUnit } from '@src/core/configuration'
+import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
 
 interface ContextMenuProps {
   selectedItem: Item | null
