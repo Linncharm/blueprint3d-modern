@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { Sidebar } from './Sidebar'
 import { ContextMenu } from './ContextMenu'
 import { CameraControls } from './CameraControls'
@@ -13,33 +14,43 @@ import { Settings } from './Settings'
 import { ViewToggle } from './ViewToggle'
 import { MyFloorplans } from './MyFloorplans'
 import { SaveFloorplanDialog } from './SaveFloorplanDialog'
-import DefaultFloorplan from '../../../src/templates/default.json'
-import ExampleFloorplan from '../../../src/templates/example.json'
-
-// @ts-ignore
-import { Blueprint3d } from '@src/blueprint3d'
-// @ts-ignore
-import { floorplannerModes } from '@src/floorplanner/floorplanner_view'
-// @ts-ignore
-import { Configuration, configDimUnit } from '@src/core/configuration'
 import { getStorageService } from '@src/services/storage'
+import DefaultFloorplan from '@src/templates/default.json'
+import ExampleFloorplan from '@src/templates/example.json'
+
+import { Blueprint3d } from '@src/blueprint3d'
+import { floorplannerModes } from '@src/floorplanner/floorplanner_view'
+import { Configuration, configDimUnit } from '@src/core/configuration'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Menu } from 'lucide-react'
+import type { Item } from '@src/items/item'
+import type { HalfEdge } from '@src/model/half_edge'
+import type { Room } from '@src/model/room'
 
 export function Blueprint3DApp() {
+  // 监听外部 FengshuiSidebar 的折叠状态
   const t = useTranslations('saveDialog')
+  const tItems = useTranslations('items')
+  const tFloorplanner = useTranslations('floorplanner')
+  const tSidebar = useTranslations('sidebar')
+  const tMyFloorplans = useTranslations('myFloorplans')
+  const contentRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
   const floorplannerCanvasRef = useRef<HTMLCanvasElement>(null)
-  const blueprint3dRef = useRef<any>(null)
+  const blueprint3dRef = useRef<Blueprint3d | null>(null)
+  const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
 
   const [activeTab, setActiveTab] = useState<
     'floorplan' | 'design' | 'items' | 'settings' | 'my-floorplans'
   >('design')
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [floorplannerMode, setFloorplannerMode] = useState<'move' | 'draw' | 'delete'>('move')
   const [textureType, setTextureType] = useState<'floor' | 'wall' | null>(null)
-  const [currentTarget, setCurrentTarget] = useState<any>(null)
+  const [currentTarget, setCurrentTarget] = useState<HalfEdge | Room | null>(null)
   const [itemsLoading, setItemsLoading] = useState(0)
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d')
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
 
   // Initialize Blueprint3d
@@ -56,14 +67,15 @@ export function Blueprint3DApp() {
       floorplannerElement: 'floorplanner-canvas',
       threeElement: '#viewer',
       textureDir: '/models/textures/',
-      widget: false
+      widget: false,
+      enableWheelZoom: true // Enable wheel zoom only when logged in
     }
 
     const blueprint3d = new Blueprint3d(opts)
     blueprint3dRef.current = blueprint3d
 
     // Setup callbacks
-    blueprint3d.three.itemSelectedCallbacks.add((item: any) => {
+    blueprint3d.three.itemSelectedCallbacks.add((item) => {
       setSelectedItem(item)
       setTextureType(null)
     })
@@ -72,13 +84,13 @@ export function Blueprint3DApp() {
       setSelectedItem(null)
     })
 
-    blueprint3d.three.wallClicked.add((halfEdge: any) => {
+    blueprint3d.three.wallClicked.add((halfEdge) => {
       setCurrentTarget(halfEdge)
       setTextureType('wall')
       setSelectedItem(null)
     })
 
-    blueprint3d.three.floorClicked.add((room: any) => {
+    blueprint3d.three.floorClicked.add((room) => {
       setCurrentTarget(room)
       setTextureType('floor')
       setSelectedItem(null)
@@ -93,8 +105,26 @@ export function Blueprint3DApp() {
       setItemsLoading((prev) => prev + 1)
     })
 
-    blueprint3d.model.scene.itemLoadedCallbacks.add(() => {
+    blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
       setItemsLoading((prev) => prev - 1)
+
+      // Update toast to success
+      const loadingToasts = loadingToastsRef.current
+      if (loadingToasts.length > 0) {
+        const { toastId, itemName } = loadingToasts.shift()!
+        toast.success(tItems('loadedSuccess', { name: itemName }), { id: toastId })
+      }
+    })
+
+    blueprint3d.model.scene.itemLoadErrorCallbacks.add(() => {
+      setItemsLoading((prev) => prev - 1)
+
+      // Update toast to error
+      const loadingToasts = loadingToastsRef.current
+      if (loadingToasts.length > 0) {
+        const { toastId, itemName } = loadingToasts.shift()!
+        toast.error(tItems('loadError', { name: itemName }), { id: toastId })
+      }
     })
 
     // Load default floorplan
@@ -112,7 +142,7 @@ export function Blueprint3DApp() {
         if (activeTab === 'design') {
           blueprint3dRef.current.three.updateWindowSize()
         } else if (activeTab === 'floorplan') {
-          blueprint3dRef.current.floorplanner.resizeView()
+          blueprint3dRef.current.floorplanner?.resizeView()
         }
       }
     }
@@ -121,21 +151,26 @@ export function Blueprint3DApp() {
     return () => window.removeEventListener('resize', handleResize)
   }, [activeTab])
 
-  // Handle sidebar collapse/expand
+  // Handle sidebar collapse/expand using ResizeObserver for accurate sizing
   useEffect(() => {
-    if (!blueprint3dRef.current) return
+    if (!contentRef.current || !blueprint3dRef.current) return
 
-    // Wait for the transition to complete (300ms) before resizing
-    const timeoutId = setTimeout(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (!blueprint3dRef.current) return
+
       if (activeTab === 'design') {
         blueprint3dRef.current.three.updateWindowSize()
       } else if (activeTab === 'floorplan') {
-        blueprint3dRef.current.floorplanner.resizeView()
+        blueprint3dRef.current.floorplanner?.resizeView()
       }
-    }, 350) // Slightly longer than the 300ms transition
+    })
 
-    return () => clearTimeout(timeoutId)
-  }, [isSidebarCollapsed, activeTab])
+    resizeObserver.observe(contentRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [activeTab])
 
   // Handle sidebar toggle
   const handleSidebarToggle = useCallback((collapsed: boolean) => {
@@ -190,7 +225,8 @@ export function Blueprint3DApp() {
   // Item controls
   const handleDeleteItem = useCallback(() => {
     if (selectedItem) {
-      selectedItem.remove()
+      selectedItem.removeFromScene()
+      setSelectedItem(null)
     }
   }, [selectedItem])
 
@@ -297,13 +333,17 @@ export function Blueprint3DApp() {
 
   // Open save dialog
   const handleSave = useCallback(() => {
+    // Check login status before opening save dialog
+
     setSaveDialogOpen(true)
   }, [])
 
-  // Save to browser storage
+  // Save to remote storage via API (default)
   const handleSaveFloorplan = useCallback(
     async (name: string) => {
       if (!blueprint3dRef.current) return
+
+      const toastId = toast.loading(t('saving') || 'Saving floorplan...')
 
       try {
         const data = blueprint3dRef.current.model.exportSerialized()
@@ -311,16 +351,29 @@ export function Blueprint3DApp() {
         // Generate top-down thumbnail
         const thumbnail = generateTopDownThumbnail()
 
-        const storage = getStorageService()
+        // Always use remote storage (API)
+        const storage = getStorageService(true)
         await storage.saveFloorplan(name, data, thumbnail)
 
-        alert(t('saveSuccess'))
+        toast.success(t('saveSuccess'), { id: toastId })
       } catch (error) {
         console.error('Failed to save floorplan:', error)
-        if (error instanceof Error && error.message === 'QUOTA_EXCEEDED') {
-          alert(t('quotaError'))
+
+        // Handle specific error cases
+        if (error instanceof Error) {
+          if (error.message === 'QUOTA_EXCEEDED') {
+            toast.error(t('quotaError'), { id: toastId })
+          } else if (
+            error.message.includes('User not logged in') ||
+            error.message.includes('not logged in')
+          ) {
+            toast.error('Please log in to save your floorplan.', { id: toastId })
+          } else {
+            // Don't show error details to user, just a generic message
+            toast.error(t('saveError'), { id: toastId })
+          }
         } else {
-          alert(t('saveError'))
+          toast.error(t('saveError'), { id: toastId })
         }
       }
     },
@@ -334,7 +387,7 @@ export function Blueprint3DApp() {
     const blob = new Blob([data], { type: 'text' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'design.blueprint3d'
+    a.download = 'design.lumenfeng'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -349,7 +402,7 @@ export function Blueprint3DApp() {
     const reader = new FileReader()
     reader.onload = (e) => {
       const data = e.target?.result
-      if (typeof data === 'string') {
+      if (typeof data === 'string' && blueprint3dRef.current) {
         blueprint3dRef.current.model.loadSerialized(data)
       }
     }
@@ -369,7 +422,7 @@ export function Blueprint3DApp() {
       Configuration.setValue(configDimUnit, unit)
       // Force floorplanner to redraw with new units
       if (blueprint3dRef.current && activeTab === 'floorplan') {
-        blueprint3dRef.current.floorplanner.reset()
+        blueprint3dRef.current.floorplanner?.reset()
       }
     },
     [activeTab]
@@ -389,11 +442,11 @@ export function Blueprint3DApp() {
           // Use requestAnimationFrame to ensure DOM has updated before centering
           requestAnimationFrame(() => {
             if (blueprint3dRef.current) {
-              blueprint3dRef.current.floorplanner.reset()
+              blueprint3dRef.current.floorplanner?.reset()
               // Additional frame to ensure canvas size is correct
               requestAnimationFrame(() => {
                 if (blueprint3dRef.current) {
-                  blueprint3dRef.current.floorplanner.resetOrigin()
+                  blueprint3dRef.current.floorplanner?.resetOrigin()
                 }
               })
             }
@@ -401,7 +454,9 @@ export function Blueprint3DApp() {
         } else if (tab === 'design') {
           blueprint3dRef.current.model.floorplan.update()
           setTimeout(() => {
-            blueprint3dRef.current.three.updateWindowSize()
+            if (blueprint3dRef.current) {
+              blueprint3dRef.current.three.updateWindowSize()
+            }
           }, 100)
         }
       }
@@ -419,7 +474,7 @@ export function Blueprint3DApp() {
       draw: floorplannerModes.DRAW,
       delete: floorplannerModes.DELETE
     }
-    blueprint3dRef.current.floorplanner.setMode(modeMap[mode])
+    blueprint3dRef.current.floorplanner?.setMode(modeMap[mode])
   }, [])
 
   const handleFloorplannerDone = useCallback(() => {
@@ -430,19 +485,26 @@ export function Blueprint3DApp() {
   }, [])
 
   // Item selection
-  const handleItemSelect = useCallback((item: { name: string; model: string; type: string }) => {
-    if (!blueprint3dRef.current) return
+  const handleItemSelect = useCallback(
+    (item: { name: string; model: string; type: string }) => {
+      if (!blueprint3dRef.current) return
 
-    const metadata = {
-      itemName: item.name,
-      resizable: true,
-      modelUrl: item.model,
-      itemType: parseInt(item.type)
-    }
+      // Show loading toast
+      const toastId = toast.loading(tItems('loadingItem', { name: item.name }))
+      loadingToastsRef.current.push({ toastId, itemName: item.name })
 
-    blueprint3dRef.current.model.scene.addItem(parseInt(item.type), item.model, metadata)
-    setActiveTab('design')
-  }, [])
+      const metadata = {
+        itemName: item.name,
+        resizable: true,
+        modelUrl: item.model,
+        itemType: parseInt(item.type)
+      }
+
+      blueprint3dRef.current.model.scene.addItem(parseInt(item.type), item.model, metadata)
+      setActiveTab('design')
+    },
+    [tItems]
+  )
 
   // Texture selection
   const handleTextureSelect = useCallback(
@@ -455,7 +517,7 @@ export function Blueprint3DApp() {
   )
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full w-full">
       <Sidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -475,12 +537,26 @@ export function Blueprint3DApp() {
         )}
       </Sidebar>
 
-      <div className="flex-1 relative">
+      <div ref={contentRef} className="flex-1 relative overflow-hidden">
+        {/* Floating Toggle Button (shown when collapsed) */}
+        <div className="absolute top-16.5 left-5 ">
+          <Button
+            onClick={() => handleSidebarToggle(false)}
+            size="icon"
+            className={cn(
+              'gradient-background text-primary-foreground rounded-full shadow-lg transition-all duration-300',
+              isSidebarCollapsed ? 'opacity-100 scale-100' : 'opacity-0 scale-0 pointer-events-none'
+            )}
+            aria-label={t('openSidebar')}
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
         {/* 3D Viewer */}
         <div
           id="viewer"
           ref={viewerRef}
-          className="w-full h-full"
+          className="absolute inset-0"
           style={{ display: activeTab === 'design' ? 'block' : 'none' }}
         >
           {activeTab === 'design' && (
@@ -491,6 +567,7 @@ export function Blueprint3DApp() {
                 onDownload={handleDownload}
                 onLoad={handleLoad}
               />
+
               <ViewToggle viewMode={viewMode} onViewChange={handleViewChange} />
               <CameraControls
                 onZoomIn={handleZoomIn}
@@ -507,7 +584,7 @@ export function Blueprint3DApp() {
           {/* Loading modal */}
           {itemsLoading > 0 && (
             <div id="loading-modal">
-              <h1>Loading...</h1>
+              <h1>{tMyFloorplans('loading')}</h1>
             </div>
           )}
         </div>
@@ -515,7 +592,7 @@ export function Blueprint3DApp() {
         {/* 2D Floorplanner */}
         <div
           id="floorplanner"
-          className="w-full h-full relative"
+          className="absolute inset-0"
           style={{ display: activeTab === 'floorplan' ? 'block' : 'none' }}
         >
           <canvas id="floorplanner-canvas" ref={floorplannerCanvasRef}></canvas>
@@ -527,8 +604,8 @@ export function Blueprint3DApp() {
                 onDone={handleFloorplannerDone}
               />
               {floorplannerMode === 'draw' && (
-                <div className="absolute left-5 bottom-5 bg-black/50 text-white px-2.5 py-1.5 rounded text-sm">
-                  Press the &quot;Esc&quot; key to stop drawing walls
+                <div className="absolute left-5 bottom-5 bg-black/50 text-primary-foreground px-2.5 py-1.5 rounded text-sm">
+                  {tFloorplanner('escHint')}
                 </div>
               )}
             </>
@@ -547,12 +624,14 @@ export function Blueprint3DApp() {
         {/* My Floorplans */}
         <div
           id="my-floorplans"
-          className="w-full h-full overflow-y-auto p-5 bg-gray-50"
+          className="w-full h-full overflow-y-auto p-5 bg-card"
           style={{ display: activeTab === 'my-floorplans' ? 'block' : 'none' }}
         >
           {activeTab === 'my-floorplans' && (
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">My Floorplans</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                {tSidebar('myFloorplans')}
+              </h2>
               <MyFloorplans onLoadFloorplan={handleLoadFloorplan} />
             </div>
           )}
@@ -561,7 +640,7 @@ export function Blueprint3DApp() {
         {/* Settings */}
         <div
           id="settings"
-          className="w-full h-full overflow-y-auto p-10 bg-gray-50"
+          className="w-full h-full overflow-y-auto p-10 bg-card"
           style={{ display: activeTab === 'settings' ? 'block' : 'none' }}
         >
           {activeTab === 'settings' && (
