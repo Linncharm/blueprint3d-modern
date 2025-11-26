@@ -1,7 +1,7 @@
 'use client'
 
 import { Move, Pencil, Trash2 } from 'lucide-react'
-import { Button } from './ui/Button'
+import { Button } from '../ui/Button'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 
@@ -11,11 +11,7 @@ interface FloorplannerControlsProps {
   onDone: () => void
 }
 
-export function FloorplannerControls({
-  mode,
-  onModeChange,
-  onDone,
-}: FloorplannerControlsProps) {
+export function FloorplannerControls({ mode, onModeChange, onDone }: FloorplannerControlsProps) {
   const t = useTranslations('floorplanner')
 
   return (

@@ -8,10 +8,10 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from './ui/Dialog'
-import { Button } from './ui/Button'
-import { Input } from './ui/Input'
+  DialogTitle
+} from '../ui/Dialog'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 
 interface SaveFloorplanDialogProps {
   open: boolean
@@ -24,7 +24,7 @@ export function SaveFloorplanDialog({
   open,
   onOpenChange,
   onSave,
-  defaultName = '',
+  defaultName = ''
 }: SaveFloorplanDialogProps) {
   const t = useTranslations('saveDialog')
   const [name, setName] = useState(defaultName)
@@ -66,17 +66,10 @@ export function SaveFloorplanDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="default"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="default" onClick={() => onOpenChange(false)}>
             {t('cancel')}
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            disabled={!name.trim()}
-          >
+          <Button variant="primary" onClick={handleSave} disabled={!name.trim()}>
             {t('save')}
           </Button>
         </DialogFooter>

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { Button } from './ui/Button'
-import { Input } from './ui/Input'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 import { useTranslations } from 'next-intl'
 // @ts-ignore
 import { Configuration, configDimUnit } from '@src/core/configuration'
@@ -15,12 +15,7 @@ interface ContextMenuProps {
   onFixedChange: (fixed: boolean) => void
 }
 
-export function ContextMenu({
-  selectedItem,
-  onDelete,
-  onResize,
-  onFixedChange,
-}: ContextMenuProps) {
+export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }: ContextMenuProps) {
   const t = useTranslations('contextMenu')
   const [width, setWidth] = useState(0)
   const [height, setHeight] = useState(0)
@@ -133,9 +128,7 @@ export function ContextMenu({
 
   return (
     <div className="mx-5">
-      <span className="text-lg font-semibold">
-        {selectedItem.metadata?.itemName}
-      </span>
+      <span className="text-lg font-semibold">{selectedItem.metadata?.itemName}</span>
       <br />
       <br />
       <Button
@@ -158,9 +151,7 @@ export function ContextMenu({
               <Input
                 type="number"
                 value={width}
-                onChange={(e) =>
-                  handleResize('width', Number(e.target.value))
-                }
+                onChange={(e) => handleResize('width', Number(e.target.value))}
               />
             </div>
             <div className="flex items-center gap-3">
@@ -168,9 +159,7 @@ export function ContextMenu({
               <Input
                 type="number"
                 value={depth}
-                onChange={(e) =>
-                  handleResize('depth', Number(e.target.value))
-                }
+                onChange={(e) => handleResize('depth', Number(e.target.value))}
               />
             </div>
             <div className="flex items-center gap-3">
@@ -178,9 +167,7 @@ export function ContextMenu({
               <Input
                 type="number"
                 value={height}
-                onChange={(e) =>
-                  handleResize('height', Number(e.target.value))
-                }
+                onChange={(e) => handleResize('height', Number(e.target.value))}
               />
             </div>
           </div>
