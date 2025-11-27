@@ -2,7 +2,7 @@
 
 A modernized 3D interior design application built on Three.js that allows users to create floor plans and design interior spaces.
 
-**[🚀 Live Demo](https://linncharm.github.io/blueprint3d-modern/)**
+**[🚀 Live Demo](https://blueprint3d-modern.vercel.app/)**
 
 This project is a comprehensive modernization of [furnishup/blueprint3d](https://github.com/furnishup/blueprint3d), originally created 9 years ago.
 
@@ -45,12 +45,14 @@ This fork includes significant modernization from the original project:
 This project includes two demo applications:
 
 ### Vite Demo (Original)
+
 - **Location**: `example/` directory
 - **Tech Stack**: Vanilla JavaScript/TypeScript + Vite
 - **Features**: Lightweight, fast development with HMR
 - **Use Case**: Simple integration example
 
 ### Next.js Demo (Modern)
+
 - **Location**: `app/` directory
 - **Tech Stack**:
   - **Framework**: Next.js 16 with App Router
@@ -199,30 +201,15 @@ blueprint3d/
 
 ## TODO
 
-- [ ] **Support GLB/GLTF Import**
-       - Allow users to import their own 3D models into the scene
-       - Support scaling, rotation, and material adjustments
+- [ ] **Support GLB/GLTF Import** - Allow users to import their own 3D models into the scene - Support scaling, rotation, and material adjustments
 
-- [x] **Unit Conversion & Display**
-       - ✅ Implemented dimension unit switching (Imperial ft/in, Metric m/cm/mm)
-       - ✅ Settings panel with unit selector
-       - ✅ Global unit conversion throughout the app
+- [x] **Unit Conversion & Display** - ✅ Implemented dimension unit switching (Imperial ft/in, Metric m/cm/mm) - ✅ Settings panel with unit selector - ✅ Global unit conversion throughout the app
 
-- [x] **Local Storage & Floorplan Management**
-       - ✅ Save and load floorplans with IndexedDB
-       - ✅ Auto-generated top-down thumbnails for saved floorplans
-       - ✅ My Floorplans panel with preview, load, download, and delete
+- [x] **Local Storage & Floorplan Management** - ✅ Save and load floorplans with IndexedDB - ✅ Auto-generated top-down thumbnails for saved floorplans - ✅ My Floorplans panel with preview, load, download, and delete
 
-- [x] **Internationalization (i18n)**
-       - ✅ Multi-language support with next-intl
-       - ✅ English and Chinese translations
-       - ✅ Language switcher in settings
-       - ✅ Locale-based routing
+- [x] **Internationalization (i18n)** - ✅ Multi-language support with next-intl - ✅ English and Chinese translations - ✅ Language switcher in settings - ✅ Locale-based routing
 
-- [ ] **Undo/Redo System for 3D Mode**
-       - Implement history tracking for 3D scene modifications
-       - Support undo/redo for item placement, movement, rotation, and deletion
-       - Keyboard shortcuts (Ctrl+Z / Ctrl+Y)
+- [ ] **Undo/Redo System for 3D Mode** - Implement history tracking for 3D scene modifications - Support undo/redo for item placement, movement, rotation, and deletion - Keyboard shortcuts (Ctrl+Z / Ctrl+Y)
 
 ## Development Workflow
 
