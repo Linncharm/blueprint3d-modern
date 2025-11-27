@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 import type { Item } from '@blueprint3d/items/item'
 
 import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
@@ -19,8 +19,8 @@ interface ContextMenuProps {
 
 export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }: ContextMenuProps) {
   console.log({ selectedItem })
-  const t = useTranslations('contextMenu')
-  //const tItems = useTranslations('items')
+  const i18n = useI18n()
+  const t = i18n.createT('contextMenu')
   const [width, setWidth] = useState(0)
   const [height, setHeight] = useState(0)
   const [depth, setDepth] = useState(0)

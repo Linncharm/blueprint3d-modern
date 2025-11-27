@@ -2,14 +2,15 @@
 
 import Image from 'next/image'
 import { ITEMS } from '@blueprint3d/constants'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 
 interface ItemsListProps {
   onItemSelect: (item: { name: string; model: string; type: string }) => void
 }
 
 export function ItemsList({ onItemSelect }: ItemsListProps) {
-  const t = useTranslations('items')
+  const i18n = useI18n()
+  const t = i18n.createT('items')
 
   return (
     <div className="grid grid-cols-4 gap-3">

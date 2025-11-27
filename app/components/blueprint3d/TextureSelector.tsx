@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { FLOOR_TEXTURES, WALL_TEXTURES } from '@blueprint3d/constants'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 
 interface TextureSelectorProps {
   type: 'floor' | 'wall' | null
@@ -10,7 +10,8 @@ interface TextureSelectorProps {
 }
 
 export function TextureSelector({ type, onTextureSelect }: TextureSelectorProps) {
-  const t = useTranslations('textureSelector')
+  const i18n = useI18n()
+  const t = i18n.createT('textureSelector')
 
   if (!type) return null
 

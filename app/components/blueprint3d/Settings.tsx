@@ -2,26 +2,24 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { Settings as SettingsIcon, Languages, Check } from 'lucide-react'
-import { useTranslations, useLocale } from 'next-intl'
-import { useRouter, usePathname } from '@/i18n/routing'
-import { locales, languageMap } from '@/i18n/routing'
+import { useI18n } from '../../providers/I18nProvider'
+import type { LanguageMap } from '../../types/i18n'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
 interface SettingsProps {
   onUnitChange?: (unit: string) => void
+  languageMap?: LanguageMap // Optional language display names map
 }
 
-export function Settings({ onUnitChange }: SettingsProps) {
-  const t = useTranslations('settings')
-  const locale = useLocale()
-  const router = useRouter()
-  const pathname = usePathname()
+export function Settings({ onUnitChange, languageMap = {} }: SettingsProps) {
+  const i18n = useI18n()
+  const t = i18n.createT('settings')
   const [isPending, startTransition] = useTransition()
 
   const [selectedUnit, setSelectedUnit] = useState('inch')
-  const [selectedLanguage, setSelectedLanguage] = useState(locale)
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.locale)
 
   // Load saved unit from localStorage on mount
   useEffect(() => {
@@ -42,7 +40,7 @@ export function Settings({ onUnitChange }: SettingsProps) {
   const handleLanguageChange = (newLocale: string) => {
     setSelectedLanguage(newLocale)
     startTransition(() => {
-      router.replace(pathname, { locale: newLocale })
+      i18n.setLocale(newLocale)
     })
   }
 
@@ -71,7 +69,7 @@ export function Settings({ onUnitChange }: SettingsProps) {
 
           <RadioGroup value={selectedLanguage} onValueChange={handleLanguageChange} disabled={isPending}>
             <div className="space-y-3">
-              {locales.map((lang) => (
+              {i18n.locales.map((lang) => (
                 <Label
                   key={lang}
                   htmlFor={`language-${lang}`}
@@ -92,7 +90,7 @@ export function Settings({ onUnitChange }: SettingsProps) {
                       {t(`languages.${lang}`)}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      {languageMap[lang as keyof typeof languageMap]}
+                      {languageMap[lang] || lang}
                     </div>
                   </div>
                   {selectedLanguage === lang && (

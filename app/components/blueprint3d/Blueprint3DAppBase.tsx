@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
+import { useI18n } from '../../providers/I18nProvider'
 import { Sidebar } from './Sidebar'
 import { ContextMenu } from './ContextMenu'
 import { CameraControls } from './CameraControls'
@@ -52,11 +52,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     onSidebarToggle: externalOnSidebarToggle
   } = config
 
-  const t = useTranslations('saveDialog')
-  const tItems = useTranslations('items')
-  const tFloorplanner = useTranslations('floorplanner')
-  const tSidebar = useTranslations('sidebar')
-  const tMyFloorplans = useTranslations('myFloorplans')
+  const i18n = useI18n()
+  const t = i18n.createT('saveDialog')
+  const tItems = i18n.createT('items')
+  const tFloorplanner = i18n.createT('floorplanner')
+  const tSidebar = i18n.createT('sidebar')
+  const tMyFloorplans = i18n.createT('myFloorplans')
 
   const contentRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)

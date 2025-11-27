@@ -2,7 +2,7 @@
 
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 import { Button } from '@/components/ui/button'
 
 interface SidebarProps {
@@ -20,7 +20,8 @@ export function Sidebar({
   isCollapsed,
   onToggleCollapse
 }: SidebarProps) {
-  const t = useTranslations('sidebar')
+  const i18n = useI18n()
+  const t = i18n.createT('sidebar')
 
   const mainTabs = [
     { id: 'floorplan' as const, label: t('editFloorplan') },

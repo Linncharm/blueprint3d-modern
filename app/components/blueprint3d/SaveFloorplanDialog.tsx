@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,8 @@ export function SaveFloorplanDialog({
   onSave,
   defaultName = ''
 }: SaveFloorplanDialogProps) {
-  const t = useTranslations('saveDialog')
+  const i18n = useI18n()
+  const t = i18n.createT('saveDialog')
   const [name, setName] = useState(defaultName)
 
   // Update name when defaultName changes

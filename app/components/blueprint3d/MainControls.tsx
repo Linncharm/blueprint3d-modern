@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 import { Button } from '@/components/ui/button'
 
 interface MainControlsProps {
@@ -11,7 +11,8 @@ interface MainControlsProps {
 }
 
 export function MainControls({ onNew, onSave, onDownload, onLoad }: MainControlsProps) {
-  const t = useTranslations('mainControls')
+  const i18n = useI18n()
+  const t = i18n.createT('mainControls')
 
   return (
     <div className="absolute top-5 left-5 flex gap-2">

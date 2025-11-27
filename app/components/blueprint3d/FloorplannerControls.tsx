@@ -3,7 +3,7 @@
 import { Move, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 
 interface FloorplannerControlsProps {
   mode: 'move' | 'draw' | 'delete'
@@ -12,7 +12,8 @@ interface FloorplannerControlsProps {
 }
 
 export function FloorplannerControls({ mode, onModeChange, onDone }: FloorplannerControlsProps) {
-  const t = useTranslations('floorplanner')
+  const i18n = useI18n()
+  const t = i18n.createT('floorplanner')
 
   return (
     <div className="absolute left-0 top-0 my-5 px-5 w-full">

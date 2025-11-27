@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Trash2, Download, FolderOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { getStorageService, FloorplanData } from '@blueprint3d/services/storage'
-import { useTranslations, useLocale } from 'next-intl'
+import { useI18n } from '../../providers/I18nProvider'
 import { Button } from '@/components/ui/button'
 
 interface MyFloorplansProps {
@@ -12,8 +12,8 @@ interface MyFloorplansProps {
 }
 
 export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
-  const t = useTranslations('myFloorplans')
-  const locale = useLocale()
+  const i18n = useI18n()
+  const t = i18n.createT('myFloorplans')
   const [floorplans, setFloorplans] = useState<FloorplanData[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -106,7 +106,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp)
-    return date.toLocaleString(locale, {
+    return date.toLocaleString(i18n.locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
