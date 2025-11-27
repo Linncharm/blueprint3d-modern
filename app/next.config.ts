@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       '@src': path.resolve(__dirname, '../src'),
     }
+
+    // Allow .js extension imports from node_modules (for Three.js addons)
+    config.resolve.extensionAlias = {
+      '.js': ['.js', '.ts', '.tsx'],
+    }
+
     return config
   },
 
@@ -19,10 +25,14 @@ const nextConfig: NextConfig = {
     resolveAlias: {
       '@src': '../src',
     },
+    resolveExtensions: ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
   },
 
   // Disable strict mode temporarily for debugging
   reactStrictMode: false,
+
+  // Transpile Three.js examples (they use ESM with .js extensions)
+  transpilePackages: ['three'],
 }
 
 export default withNextIntl(nextConfig)
