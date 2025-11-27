@@ -1,43 +1,135 @@
-@import "tailwindcss";
+/* ------------------------------------------------------------------
+   Tailwind + 设计系统基准
+------------------------------------------------------------------ */
+@import 'tailwindcss';
 
+@theme {
+  --color-primary: hsl(var(--primary));
+  --color-primary-50: color-mix(in srgb, hsl(var(--primary)) 8%, white);
+  --color-primary-100: color-mix(in srgb, hsl(var(--primary)) 15%, white);
+  --color-primary-200: color-mix(in srgb, hsl(var(--primary)) 25%, white);
+  --color-primary-300: color-mix(in srgb, hsl(var(--primary)) 40%, white);
+  --color-primary-400: color-mix(in srgb, hsl(var(--primary)) 80%, white);
+  --color-primary-500: hsl(var(--primary));
+  --color-primary-600: color-mix(in srgb, hsl(var(--primary)) 60%, black);
+  --color-primary-700: color-mix(in srgb, hsl(var(--primary)) 40%, black);
+  --color-primary-800: color-mix(in srgb, hsl(var(--primary)) 55%, black);
+  --color-primary-900: color-mix(in srgb, hsl(var(--primary)) 40%, black);
+  --color-primary-950: color-mix(in srgb, hsl(var(--primary)) 25%, black);
+  --color-gradient: hsl(var(--gradient));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  /* Sidebar specific */
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Border radius & animations */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+/* ------------------------------------------------------------------
+   Base layer：原子色值 & 基础样式
+------------------------------------------------------------------ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* ===== Brand primary color (Fresh Blue) ===== */
+    --primary: 210 85% 58%; /* Bright blue #3B82F6 */
+    --primary-foreground: 0 0% 100%; /* Pure white foreground */
 
-    --color-background: hsl(var(--background));
-    --color-foreground: hsl(var(--foreground));
-    --color-primary: hsl(var(--primary));
-    --color-primary-foreground: hsl(var(--primary-foreground));
-    --color-secondary: hsl(var(--secondary));
-    --color-secondary-foreground: hsl(var(--secondary-foreground));
-    --color-muted: hsl(var(--muted));
-    --color-muted-foreground: hsl(var(--muted-foreground));
-    --color-accent: hsl(var(--accent));
-    --color-accent-foreground: hsl(var(--accent-foreground));
-    --color-destructive: hsl(var(--destructive));
-    --color-destructive-foreground: hsl(var(--destructive-foreground));
-    --color-border: hsl(var(--border));
-    --color-input: hsl(var(--input));
-    --color-ring: hsl(var(--ring));
+    /* ===== Base surfaces (Pure White) ===== */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 222 47% 11%; /* Deep blue-gray text */
+
+    --card: 0 0% 100%; /* Card pure white */
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* ===== Sidebar ===== */
+    --sidebar-background: 210 40% 98%; /* Very light blue-white */
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: var(--ring);
+
+    /* ===== Functional colors ===== */
+    --secondary: 210 40% 96%; /* Light blue-gray */
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* Neutral gray-blue */
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%; /* Red remains unchanged */
+    --destructive-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%; /* Warning color remains unchanged */
+    --warning-foreground: 38 95% 5%;
+
+    --border: 214 32% 91%; /* Light blue-gray border */
+    --input: 214 32% 91%;
+    --ring: 210 85% 58%; /* Focus ring = Primary blue */
+    --gradient: 200 95% 65%; /* Gradient color (Sky blue) #33B5E5 */
+
+    /* ===== Chart colors ===== */
+    --chart-1: 210 85% 58%; /* Primary blue */
+    --chart-2: 200 95% 65%; /* Sky blue */
+    --chart-3: 190 60% 50%; /* Cyan */
+    --chart-4: 220 70% 65%; /* Light purple-blue */
+    --chart-5: 240 50% 60%; /* Accent purple */
+
+    --radius: 0.5rem;
   }
 
   html {
@@ -54,10 +146,36 @@
 /* Loading modal */
 #loading-modal {
   @apply absolute z-10 left-0 top-0 w-full h-full p-5;
-  background-color: rgba(50, 50, 50, 0.9);
+  background-color: rgba(30, 50, 80, 0.9); /* Deep blue overlay */
 }
 
 #loading-modal h1 {
   @apply text-center text-white;
   margin-top: 30%;
+}
+
+/* CTA button gradient */
+.gradient-background {
+  background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--gradient)));
+  background-size: 100% 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.gradient-background:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(to right, hsl(var(--gradient)), hsl(var(--primary)));
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.gradient-background:hover:before {
+  opacity: 1;
 }
