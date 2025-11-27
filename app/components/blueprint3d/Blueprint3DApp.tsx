@@ -1,18 +1,18 @@
 'use client'
 
-import { DefaultI18nProvider } from '@/providers/DefaultI18nProvider'
+import { Blueprint3DI18nAdapter } from '@/adapters/blueprint3d-i18n-adapter'
 import { Blueprint3DAppBase } from './Blueprint3DAppBase'
 
 /**
- * Standalone Blueprint3D App
- * This demonstrates how to use Blueprint3D independently without next-intl
+ * Blueprint3D App for standalone submodule
+ * This component wraps the base Blueprint3DApp with i18n adapter (next-intl)
  */
-export function Home() {
+export function Blueprint3DApp() {
   return (
-    <DefaultI18nProvider>
+    <Blueprint3DI18nAdapter>
       <Blueprint3DAppBase />
-    </DefaultI18nProvider>
+    </Blueprint3DI18nAdapter>
   )
 }
 
-export default Home
+export default Blueprint3DApp
