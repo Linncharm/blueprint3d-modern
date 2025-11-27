@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { I18nProvider } from './I18nProvider'
 import type { I18nContext, TranslationFunction } from '../types/i18n'
-import enTranslations from '../translations/en.json'
+import enTranslations from '../messages/en.json'
 
 /**
  * Default I18n Provider for standalone Blueprint3D usage

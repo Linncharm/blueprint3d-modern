@@ -1,4 +1,4 @@
-import { Utils } from '../core/utils'
+import { Utils, type Point } from '../core/utils'
 import { EventEmitter } from '../core/events'
 import type { Floorplan } from './floorplan'
 import type { Wall } from './wall'
@@ -9,7 +9,7 @@ const cornerTolerance: number = 20
 /**
  * Corners are used to define Walls.
  */
-export class Corner {
+export class Corner implements Point {
   /** Array of start walls. */
   private wallStarts: Wall[] = []
 

@@ -510,7 +510,7 @@ export class Floorplan {
     // remove duplicates
     const uniqueLoops = _removeDuplicateRooms(loops)
     //remove CW loops
-    const uniqueCCWLoops = Utils.removeIf(uniqueLoops, Utils.isClockwise)
+    const uniqueCCWLoops = Utils.removeIf<Corner[]>(uniqueLoops, Utils.isClockwise)
 
     return uniqueCCWLoops
   }
