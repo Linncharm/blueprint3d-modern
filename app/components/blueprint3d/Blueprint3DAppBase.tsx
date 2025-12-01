@@ -48,8 +48,8 @@ interface Blueprint3DAppBaseProps {
 
 export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const {
-    isAuthenticated = true, // Deprecated, kept for backward compatibility
-    onAuthRequired,
+    // isAuthenticated = true, // Deprecated, kept for backward compatibility
+    // onAuthRequired,
     enableWheelZoom = true,
     externalSidebarCollapsed,
     onSidebarToggle: externalOnSidebarToggle,
