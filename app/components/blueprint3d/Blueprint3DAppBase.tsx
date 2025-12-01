@@ -29,7 +29,7 @@ import type { HalfEdge } from '@blueprint3d/model/half_edge'
 import type { Room } from '@blueprint3d/model/room'
 
 export interface Blueprint3DAppConfig {
-  // Authentication related
+  // Authentication related (deprecated - no longer required)
   isAuthenticated?: boolean
   onAuthRequired?: () => void
   enableWheelZoom?: boolean | (() => boolean)
@@ -37,6 +37,9 @@ export interface Blueprint3DAppConfig {
   // Sidebar management
   externalSidebarCollapsed?: boolean
   onSidebarToggle?: (collapsed: boolean) => void
+
+  // Session management for anonymous users
+  ensureUserSession?: () => Promise<boolean>
 }
 
 interface Blueprint3DAppBaseProps {
@@ -45,11 +48,12 @@ interface Blueprint3DAppBaseProps {
 
 export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const {
-    isAuthenticated = true,
+    isAuthenticated = true, // Deprecated, kept for backward compatibility
     onAuthRequired,
     enableWheelZoom = true,
     externalSidebarCollapsed,
-    onSidebarToggle: externalOnSidebarToggle
+    onSidebarToggle: externalOnSidebarToggle,
+    ensureUserSession
   } = config
 
   const i18n = useI18n()
@@ -384,17 +388,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [])
 
-  // Open save dialog
+  // Open save dialog (no longer requires authentication check)
   const handleSave = useCallback(() => {
-    // Check authentication if required
-    if (!isAuthenticated && onAuthRequired) {
-      onAuthRequired()
-      return
-    }
     setSaveDialogOpen(true)
-  }, [isAuthenticated, onAuthRequired])
+  }, [])
 
-  // Save to remote storage via API (default)
+  // Save to remote storage via API (supports anonymous users)
   const handleSaveFloorplan = useCallback(
     async (name: string) => {
       if (!blueprint3dRef.current) return
@@ -407,8 +406,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         // Generate top-down thumbnail
         const thumbnail = generateTopDownThumbnail()
 
-        // Always use remote storage (API)
-        const storage = getStorageService(true)
+        // Always use remote storage (API) with session management
+        const storage = getStorageService(true, ensureUserSession)
         await storage.saveFloorplan(name, data, thumbnail)
 
         toast.success(t('saveSuccess'), { id: toastId })
@@ -419,11 +418,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         if (error instanceof Error) {
           if (error.message === 'QUOTA_EXCEEDED') {
             toast.error(t('quotaError'), { id: toastId })
+          } else if (error.message.includes('Failed to establish user session')) {
+            toast.error('Failed to create session. Please try again.', { id: toastId })
           } else if (
             error.message.includes('User not logged in') ||
             error.message.includes('not logged in')
           ) {
-            toast.error('Please log in to save your floorplan.', { id: toastId })
+            // This shouldn't happen with anonymous login, but keep as fallback
+            toast.error('Session error. Please refresh and try again.', { id: toastId })
           } else {
             // Don't show error details to user, just a generic message
             toast.error(t('saveError'), { id: toastId })
@@ -433,7 +435,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         }
       }
     },
-    [generateTopDownThumbnail, t]
+    [generateTopDownThumbnail, t, ensureUserSession]
   )
 
   // Download as file

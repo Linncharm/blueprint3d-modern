@@ -257,12 +257,31 @@ class LocalStorageService implements IStorageService {
 // Remote Storage Implementation - Uses existing layout API
 class RemoteStorageService implements IStorageService {
   private apiUrl: string
+  private ensureSessionFn?: () => Promise<boolean>
 
-  constructor(apiUrl: string = '/api/layout') {
+  constructor(apiUrl: string = '/api/layout', ensureSessionFn?: () => Promise<boolean>) {
     this.apiUrl = apiUrl
+    this.ensureSessionFn = ensureSessionFn
+  }
+
+  /**
+   * 确保用户有有效会话
+   * 如果提供了 ensureSessionFn，调用它；否则直接返回 true
+   */
+  private async ensureSession(): Promise<boolean> {
+    if (this.ensureSessionFn) {
+      return await this.ensureSessionFn()
+    }
+    return true
   }
 
   async saveFloorplan(name: string, data: string, thumbnail?: string): Promise<FloorplanData> {
+    // 确保用户已登录（可能是匿名用户）
+    const hasSession = await this.ensureSession()
+    if (!hasSession) {
+      throw new Error('Failed to establish user session')
+    }
+
     // Parse the original canvas data
     const parsedData = JSON.parse(data)
 
@@ -361,6 +380,12 @@ class RemoteStorageService implements IStorageService {
     data: string,
     thumbnail?: string
   ): Promise<FloorplanData> {
+    // 确保用户已登录（可能是匿名用户）
+    const hasSession = await this.ensureSession()
+    if (!hasSession) {
+      throw new Error('Failed to establish user session')
+    }
+
     // Parse the original canvas data
     const parsedData = JSON.parse(data)
 
@@ -416,7 +441,10 @@ class RemoteStorageService implements IStorageService {
 }
 
 // Factory to get the appropriate storage service
-export function getStorageService(forceRemote?: boolean): IStorageService {
+export function getStorageService(
+  forceRemote?: boolean,
+  ensureSessionFn?: () => Promise<boolean>
+): IStorageService {
   // Check if we're in a browser environment
   if (typeof window === 'undefined') {
     throw new Error('Storage service can only be used in browser environment')
@@ -427,7 +455,7 @@ export function getStorageService(forceRemote?: boolean): IStorageService {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/layout'
 
   if (useRemote) {
-    return new RemoteStorageService(apiUrl)
+    return new RemoteStorageService(apiUrl, ensureSessionFn)
   }
 
   // Use IndexedDB for local storage (better capacity than localStorage)
