@@ -182,7 +182,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     })
 
     // Load default floorplan
-    blueprint3d.model.loadSerialized(JSON.stringify(ExampleFloorplan))
+    // Use DefaultFloorplan for generator mode (empty room), ExampleFloorplan for normal mode
+    const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
+    blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
 
     return () => {
       // Cleanup if needed
