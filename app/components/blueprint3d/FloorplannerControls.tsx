@@ -1,9 +1,10 @@
 'use client'
 
-import { Move, Pencil, Trash2 } from 'lucide-react'
+import { Move, Pencil, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useI18n } from '../../providers/I18nProvider'
+import { useIsMobile } from '@/hooks/use-media-query'
 
 interface FloorplannerControlsProps {
   mode: 'move' | 'draw' | 'delete'
@@ -14,42 +15,60 @@ interface FloorplannerControlsProps {
 export function FloorplannerControls({ mode, onModeChange, onDone }: FloorplannerControlsProps) {
   const i18n = useI18n()
   const t = i18n.createT('floorplanner')
+  const isMobile = useIsMobile()
 
   return (
-    <div className="absolute left-0 top-0 my-5 px-5 w-full">
+    <div className={cn('absolute left-0 top-0 w-full', isMobile ? 'my-3 px-3' : 'my-5 px-5')}>
       <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+        <div className={cn('flex', isMobile ? 'gap-1' : 'gap-2')}>
           <Button
-            size="sm"
+            size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'move' ? 'secondary' : 'default'}
             onClick={() => onModeChange('move')}
-            className={cn('flex items-center gap-2')}
+            className={cn(!isMobile && 'flex items-center gap-2', isMobile && 'h-9 w-9 shadow-md')}
+            title={isMobile ? t('moveWalls') : undefined}
           >
             <Move className="h-4 w-4" />
-            {t('moveWalls')}
+            {!isMobile && t('moveWalls')}
           </Button>
           <Button
-            size="sm"
+            size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'draw' ? 'secondary' : 'default'}
             onClick={() => onModeChange('draw')}
-            className={cn('flex items-center gap-2')}
+            className={cn(!isMobile && 'flex items-center gap-2', isMobile && 'h-9 w-9 shadow-md')}
+            title={isMobile ? t('drawWalls') : undefined}
           >
             <Pencil className="h-4 w-4" />
-            {t('drawWalls')}
+            {!isMobile && t('drawWalls')}
           </Button>
           <Button
-            size="sm"
+            size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'delete' ? 'secondary' : 'default'}
             onClick={() => onModeChange('delete')}
-            className={cn('flex items-center gap-2')}
+            className={cn(!isMobile && 'flex items-center gap-2', isMobile && 'h-9 w-9 shadow-md')}
+            title={isMobile ? t('deleteWalls') : undefined}
           >
             <Trash2 className="h-4 w-4" />
-            {t('deleteWalls')}
+            {!isMobile && t('deleteWalls')}
           </Button>
         </div>
 
-        <Button size="sm" variant="secondary" onClick={onDone}>
-          {t('done')} &raquo;
+        <Button
+          size={isMobile ? 'sm' : 'sm'}
+          variant="secondary"
+          onClick={onDone}
+          className={cn(isMobile && 'shadow-md')}
+        >
+          {isMobile ? (
+            <>
+              <Check className="h-4 w-4 mr-1.5" />
+              {t('done')}
+            </>
+          ) : (
+            <>
+              {t('done')} &raquo;
+            </>
+          )}
         </Button>
       </div>
     </div>

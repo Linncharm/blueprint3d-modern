@@ -45,6 +45,11 @@ export class Controls {
   // Enable/disable wheel zoom (for controlling page scroll vs zoom behavior)
   public enableWheelZoom = true
 
+  // Mobile touch: allow page scroll with single finger vertical swipe
+  public allowPageScroll = true
+  private touchStartY = 0
+  private touchMoveThreshold = 10 // pixels to move before deciding if it's a 3D interaction
+
   // Set to true to disable this control
   public noRotate = false
   public rotateSpeed = 1.0
@@ -452,11 +457,13 @@ export class Controls {
     }
 
     switch (event.touches.length) {
-      case 1: // one-fingered touch: rotate
+      case 1: // one-fingered touch: rotate (or page scroll)
         if (this.noRotate === true) {
           return
         }
 
+        // Store initial touch position for scroll detection
+        this.touchStartY = event.touches[0].pageY
         this.state = STATE.TOUCH_ROTATE
 
         this.rotateStart.set(event.touches[0].pageX, event.touches[0].pageY)
@@ -473,6 +480,9 @@ export class Controls {
         const dy = event.touches[0].pageY - event.touches[1].pageY
         const distance = Math.sqrt(dx * dx + dy * dy)
         this.dollyStart.set(0, distance)
+
+        // Prevent page scroll for multi-touch gestures
+        event.preventDefault()
         break
 
       case 3: // three-fingered touch: pan
@@ -483,6 +493,9 @@ export class Controls {
         this.state = STATE.TOUCH_PAN
 
         this.panStart.set(event.touches[0].pageX, event.touches[0].pageY)
+
+        // Prevent page scroll for multi-touch gestures
+        event.preventDefault()
         break
 
       default:
@@ -495,16 +508,13 @@ export class Controls {
       return
     }
 
-    event.preventDefault()
-    event.stopPropagation()
-
     const element =
       this.domElement === document
         ? (this.domElement as Document).body
         : (this.domElement as HTMLElement)
 
     switch (event.touches.length) {
-      case 1: // one-fingered touch: rotate
+      case 1: // one-fingered touch: rotate (or page scroll)
         if (this.noRotate === true) {
           return
         }
@@ -515,16 +525,30 @@ export class Controls {
         this.rotateEnd.set(event.touches[0].pageX, event.touches[0].pageY)
         this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart)
 
-        // rotating across whole screen goes 360 degrees around
-        this.rotateLeft(
-          ((2 * Math.PI * this.rotateDelta.x) / element.clientWidth) * this.rotateSpeed
-        )
-        // rotating up and down along whole screen attempts to go 360, but limited to 180
-        this.rotateUp(
-          ((2 * Math.PI * this.rotateDelta.y) / element.clientHeight) * this.rotateSpeed
-        )
+        // Check if this is a vertical scroll gesture or a 3D rotation
+        const touchMoveY = Math.abs(event.touches[0].pageY - this.touchStartY)
+        const touchMoveX = Math.abs(event.touches[0].pageX - this.rotateStart.x)
+        const isVerticalScroll = this.allowPageScroll && touchMoveY > touchMoveX && touchMoveX < this.touchMoveThreshold
 
-        this.rotateStart.copy(this.rotateEnd)
+        // Only prevent default and rotate if it's clearly a horizontal or diagonal gesture
+        if (!isVerticalScroll) {
+          event.preventDefault()
+          event.stopPropagation()
+
+          // rotating across whole screen goes 360 degrees around
+          this.rotateLeft(
+            ((2 * Math.PI * this.rotateDelta.x) / element.clientWidth) * this.rotateSpeed
+          )
+          // rotating up and down along whole screen attempts to go 360, but limited to 180
+          this.rotateUp(
+            ((2 * Math.PI * this.rotateDelta.y) / element.clientHeight) * this.rotateSpeed
+          )
+
+          this.rotateStart.copy(this.rotateEnd)
+        } else {
+          // Allow page scroll for vertical gestures
+          this.state = STATE.NONE
+        }
         break
 
       case 2: // two-fingered touch: dolly
@@ -534,6 +558,9 @@ export class Controls {
         if (this.state !== STATE.TOUCH_DOLLY) {
           return
         }
+
+        event.preventDefault()
+        event.stopPropagation()
 
         const dx = event.touches[0].pageX - event.touches[1].pageX
         const dy = event.touches[0].pageY - event.touches[1].pageY
@@ -558,6 +585,9 @@ export class Controls {
         if (this.state !== STATE.TOUCH_PAN) {
           return
         }
+
+        event.preventDefault()
+        event.stopPropagation()
 
         this.panEnd.set(event.touches[0].pageX, event.touches[0].pageY)
         this.panDelta.subVectors(this.panEnd, this.panStart)

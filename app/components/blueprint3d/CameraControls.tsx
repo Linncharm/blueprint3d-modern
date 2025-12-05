@@ -2,6 +2,8 @@
 
 import { ZoomIn, ZoomOut, Home, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
 
 interface CameraControlsProps {
   onZoomIn: () => void
@@ -22,34 +24,52 @@ export function CameraControls({
   onMoveUp,
   onMoveDown
 }: CameraControlsProps) {
+  const isMobile = useIsMobile()
+
   return (
-    <div className="absolute bottom-5 right-0 pr-5 flex items-end gap-3">
-      <div className="flex items-end gap-1">
-        <Button size="sm" onClick={onZoomOut}>
-          <ZoomOut className="h-4 w-4" />
+    <div
+      className={cn(
+        'absolute flex items-end',
+        // Mobile: Bottom center with smaller buttons
+        isMobile ? 'bottom-3 left-1/2 -translate-x-1/2 gap-2' : 'bottom-5 right-0 pr-5 gap-3'
+      )}
+    >
+      {/* Zoom Controls */}
+      <div className={cn('flex items-end', isMobile ? 'gap-0.5' : 'gap-1')}>
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={onZoomOut} className={cn(isMobile && 'h-9 w-9 shadow-md')}>
+          <ZoomOut className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
         </Button>
-        <Button size="sm" onClick={onResetView}>
-          <Home className="h-4 w-4" />
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={onResetView} className={cn(isMobile && 'h-9 w-9 shadow-md')}>
+          <Home className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
         </Button>
-        <Button size="sm" onClick={onZoomIn}>
-          <ZoomIn className="h-4 w-4" />
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={onZoomIn} className={cn(isMobile && 'h-9 w-9 shadow-md')}>
+          <ZoomIn className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
         </Button>
       </div>
 
-      <div className="flex items-end gap-1">
-        <Button size="sm" onClick={onMoveLeft}>
-          <ArrowLeft className="h-4 w-4" />
+      {/* Pan Controls */}
+      <div className={cn('flex items-end', isMobile ? 'gap-0.5' : 'gap-1')}>
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={onMoveLeft} className={cn(isMobile && 'h-9 w-9 shadow-md')}>
+          <ArrowLeft className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
         </Button>
-        <div className="flex flex-col gap-1">
-          <Button size="sm" onClick={onMoveUp} className="rounded-b-none">
-            <ArrowUp className="h-4 w-4" />
+        <div className={cn('flex flex-col', isMobile ? 'gap-0.5' : 'gap-1')}>
+          <Button
+            size={isMobile ? 'icon' : 'sm'}
+            onClick={onMoveUp}
+            className={cn('rounded-b-none', isMobile && 'h-9 w-9 shadow-md')}
+          >
+            <ArrowUp className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
           </Button>
-          <Button size="sm" onClick={onMoveDown} className="rounded-t-none">
-            <ArrowDown className="h-4 w-4" />
+          <Button
+            size={isMobile ? 'icon' : 'sm'}
+            onClick={onMoveDown}
+            className={cn('rounded-t-none', isMobile && 'h-9 w-9 shadow-md')}
+          >
+            <ArrowDown className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
           </Button>
         </div>
-        <Button size="sm" onClick={onMoveRight}>
-          <ArrowRight className="h-4 w-4" />
+        <Button size={isMobile ? 'icon' : 'sm'} onClick={onMoveRight} className={cn(isMobile && 'h-9 w-9 shadow-md')}>
+          <ArrowRight className={cn(isMobile ? 'h-4 w-4' : 'h-4 w-4')} />
         </Button>
       </div>
     </div>
