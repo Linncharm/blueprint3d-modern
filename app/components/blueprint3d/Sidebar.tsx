@@ -100,25 +100,30 @@ export function Sidebar({
             )}
           >
             {mainTabs.map((tab) => (
-              <li
-                key={tab.id}
-                className={cn(
-                  'cursor-pointer transition-colors',
-                  activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
-                )}
-              >
+              <li key={tab.id} className="px-3 py-1">
                 <button
                   onClick={() => {
                     onTabChange(tab.id)
-                    // Auto-close on mobile when selecting design tab
                     if (isMobileOrTablet && tab.id === 'design') {
                       onToggleCollapse(true)
                     }
                   }}
-                  className="w-full text-left px-5 py-3 flex items-center justify-between"
+                  className={cn(
+                    'w-full text-left px-4 py-2.5 flex items-center justify-between',
+                    'rounded-lg transition-all duration-200',
+                    'text-sm font-medium',
+                    activeTab === tab.id
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
                 >
-                  {tab.label}
-                  <ChevronRight className="h-4 w-4" />
+                  <span>{tab.label}</span>
+                  <ChevronLeft
+                    className={cn(
+                      'h-4 w-4 transition-transform',
+                      activeTab === tab.id ? 'opacity-100' : 'opacity-40'
+                    )}
+                  />
                 </button>
               </li>
             ))}
@@ -137,20 +142,25 @@ export function Sidebar({
               isCollapsed && !isMobileOrTablet ? 'opacity-0' : 'opacity-100'
             )}
           >
-            <li
-              className={cn(
-                'cursor-pointer transition-colors',
-                activeTab === settingsTab.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent'
-              )}
-            >
+            <li className="px-3 py-1">
               <button
                 onClick={() => onTabChange(settingsTab.id)}
-                className="w-full text-left px-5 py-3 flex items-center justify-between"
+                className={cn(
+                  'w-full text-left px-4 py-2.5 flex items-center justify-between',
+                  'rounded-lg transition-all duration-200',
+                  'text-sm font-medium',
+                  activeTab === settingsTab.id
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )}
               >
-                {settingsTab.label}
-                <ChevronRight className="h-4 w-4" />
+                <span>{settingsTab.label}</span>
+                <ChevronLeft
+                  className={cn(
+                    'h-4 w-4 transition-transform',
+                    activeTab === settingsTab.id ? 'opacity-100' : 'opacity-40'
+                  )}
+                />
               </button>
             </li>
           </ul>
@@ -173,12 +183,12 @@ export function Sidebar({
             variant="outline"
             size="icon"
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 -right-4 rounded-full shadow-md transition-all duration-300 z-20',
+              'absolute top-1/2 -translate-y-1/2 -left-4 rounded-full shadow-md transition-all duration-300 z-20',
               isCollapsed ? 'opacity-0 pointer-events-none scale-0' : 'opacity-100 scale-100'
             )}
             aria-label="Collapse sidebar"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5" />
           </Button>
         )}
       </div>

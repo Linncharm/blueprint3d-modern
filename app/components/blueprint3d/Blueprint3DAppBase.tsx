@@ -608,31 +608,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   return (
     <div className="flex h-full w-full">
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleSidebarToggle}
-      >
-        {selectedItem && !textureType && (
-          <ContextMenu
-            selectedItem={selectedItem}
-            onDelete={handleDeleteItem}
-            onResize={handleResizeItem}
-            onFixedChange={handleFixedChange}
-          />
-        )}
-        {textureType && (
-          <TextureSelector type={textureType} onTextureSelect={handleTextureSelect} />
-        )}
-        {mode === 'generator' && !selectedItem && !textureType && onBedSizeChange && (
-          <BedSizeInput onSizeChange={onBedSizeChange} />
-        )}
-      </Sidebar>
-
       <div ref={contentRef} className="flex-1 relative overflow-hidden">
         {/* Floating Toggle Button (shown when collapsed) */}
-        <div className="absolute top-16.5 left-5 ">
+        <div className="absolute top-16.5 right-5 ">
           <Button
             onClick={() => handleSidebarToggle(false)}
             size="icon"
@@ -752,6 +730,28 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           )}
         </div>
       </div>
+
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleSidebarToggle}
+      >
+        {selectedItem && !textureType && (
+          <ContextMenu
+            selectedItem={selectedItem}
+            onDelete={handleDeleteItem}
+            onResize={handleResizeItem}
+            onFixedChange={handleFixedChange}
+          />
+        )}
+        {textureType && (
+          <TextureSelector type={textureType} onTextureSelect={handleTextureSelect} />
+        )}
+        {mode === 'generator' && !selectedItem && !textureType && onBedSizeChange && (
+          <BedSizeInput onSizeChange={onBedSizeChange} />
+        )}
+      </Sidebar>
 
       {/* Save Floorplan Dialog */}
       <SaveFloorplanDialog
