@@ -46,6 +46,9 @@ export interface Blueprint3DAppConfig {
 
   // Bed size change callback (for generator mode)
   onBedSizeChange?: (width: number, length: number) => void
+
+  // show setting language
+  isLanguageOption?: boolean
 }
 
 interface Blueprint3DAppBaseProps {
@@ -60,7 +63,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     ensureUserSession,
     mode = 'normal',
     onBlueprint3DReady,
-    onBedSizeChange
+    onBedSizeChange,
+    isLanguageOption = true
   } = config
 
   const i18n = useI18n()
@@ -705,7 +709,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         >
           {activeTab === 'settings' && (
             <div className="max-w-2xl mx-auto">
-              <Settings onUnitChange={handleUnitChange} />
+              <Settings onUnitChange={handleUnitChange} isLanguageOption={isLanguageOption} />
             </div>
           )}
         </div>

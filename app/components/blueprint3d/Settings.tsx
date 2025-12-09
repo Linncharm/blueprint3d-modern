@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils'
 interface SettingsProps {
   onUnitChange?: (unit: string) => void
   languageMap?: LanguageMap // Optional language display names map
+  isLanguageOption?: boolean
 }
 
-export function Settings({ onUnitChange, languageMap = {} }: SettingsProps) {
+export function Settings({ onUnitChange, languageMap = {}, isLanguageOption }: SettingsProps) {
   const i18n = useI18n()
   const t = i18n.createT('settings')
   const [isPending, startTransition] = useTransition()
@@ -62,49 +63,51 @@ export function Settings({ onUnitChange, languageMap = {} }: SettingsProps) {
 
       <div className="space-y-8">
         {/* Language Settings */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Languages className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">{t('language')}</h2>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">{t('languageDescription')}</p>
-
-          <RadioGroup value={selectedLanguage} onValueChange={handleLanguageChange} disabled={isPending}>
-            <div className="space-y-3">
-              {i18n.locales.map((lang) => (
-                <Label
-                  key={lang}
-                  htmlFor={`language-${lang}`}
-                  className={cn(
-                    'flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer hover:bg-accent transition-all',
-                    selectedLanguage === lang
-                      ? 'border-primary bg-primary-50'
-                      : 'border-border bg-card'
-                  )}
-                >
-                  <RadioGroupItem
-                    value={lang}
-                    id={`language-${lang}`}
-                    className="mt-1.5"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-base text-foreground">
-                      {t(`languages.${lang}`)}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {languageMap[lang] || lang}
-                    </div>
-                  </div>
-                  {selectedLanguage === lang && (
-                    <div className="text-primary font-medium text-sm mt-1.5 flex items-center gap-1">
-                      <Check className="h-4 w-4" /> {t('active')}
-                    </div>
-                  )}
-                </Label>
-              ))}
+        {isLanguageOption && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Languages className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-lg font-semibold text-foreground">{t('language')}</h2>
             </div>
-          </RadioGroup>
-        </div>
+            <p className="text-sm text-muted-foreground mb-4">{t('languageDescription')}</p>
+
+            <RadioGroup
+              value={selectedLanguage}
+              onValueChange={handleLanguageChange}
+              disabled={isPending}
+            >
+              <div className="space-y-3">
+                {i18n.locales.map((lang) => (
+                  <Label
+                    key={lang}
+                    htmlFor={`language-${lang}`}
+                    className={cn(
+                      'flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer hover:bg-accent transition-all',
+                      selectedLanguage === lang
+                        ? 'border-primary bg-primary-50'
+                        : 'border-border bg-card'
+                    )}
+                  >
+                    <RadioGroupItem value={lang} id={`language-${lang}`} className="mt-1.5" />
+                    <div className="flex-1">
+                      <div className="font-semibold text-base text-foreground">
+                        {t(`languages.${lang}`)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {languageMap[lang] || lang}
+                      </div>
+                    </div>
+                    {selectedLanguage === lang && (
+                      <div className="text-primary font-medium text-sm mt-1.5 flex items-center gap-1">
+                        <Check className="h-4 w-4" /> {t('active')}
+                      </div>
+                    )}
+                  </Label>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+        )}
 
         {/* Dimension Unit Settings */}
         <div>
@@ -125,11 +128,7 @@ export function Settings({ onUnitChange, languageMap = {} }: SettingsProps) {
                     : 'border-border bg-card'
                 )}
               >
-                <RadioGroupItem
-                  value={unit.value}
-                  id={`unit-${unit.value}`}
-                  className="mt-1.5"
-                />
+                <RadioGroupItem value={unit.value} id={`unit-${unit.value}`} className="mt-1.5" />
                 <div className="flex-1">
                   <div className="font-semibold text-base text-foreground">{unit.label}</div>
                   <div className="text-sm text-muted-foreground mt-1">{unit.description}</div>
