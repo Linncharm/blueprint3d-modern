@@ -35,10 +35,6 @@ export interface Blueprint3DAppConfig {
   onAuthRequired?: () => void
   enableWheelZoom?: boolean | (() => boolean)
 
-  // Sidebar management
-  externalSidebarCollapsed?: boolean
-  onSidebarToggle?: (collapsed: boolean) => void
-
   // Session management for anonymous users
   ensureUserSession?: () => Promise<boolean>
 
@@ -61,8 +57,6 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     // isAuthenticated = true, // Deprecated, kept for backward compatibility
     // onAuthRequired,
     enableWheelZoom = true,
-    externalSidebarCollapsed,
-    onSidebarToggle: externalOnSidebarToggle,
     ensureUserSession,
     mode = 'normal',
     onBlueprint3DReady,
@@ -91,7 +85,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [currentTarget, setCurrentTarget] = useState<HalfEdge | Room | null>(null)
   const [itemsLoading, setItemsLoading] = useState(0)
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d')
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
 
   // Get effective wheel zoom setting
@@ -236,23 +230,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   }, [activeTab])
 
   // Handle sidebar toggle
-  const handleSidebarToggle = useCallback(
-    (collapsed: boolean) => {
-      // Call external handler if provided
-      if (externalOnSidebarToggle) {
-        externalOnSidebarToggle(collapsed)
-      }
-      setIsSidebarCollapsed(collapsed)
-    },
-    [externalOnSidebarToggle]
-  )
-
-  // Sync with external sidebar state if provided
-  useEffect(() => {
-    if (externalSidebarCollapsed !== undefined) {
-      setIsSidebarCollapsed(externalSidebarCollapsed)
-    }
-  }, [externalSidebarCollapsed])
+  const handleSidebarToggle = useCallback((collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed)
+  }, [])
 
   // Camera controls
   const handleZoomIn = useCallback(() => {
