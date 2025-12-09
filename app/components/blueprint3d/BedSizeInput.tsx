@@ -5,6 +5,18 @@ import { Input } from '@/components/ui/input'
 import { useI18n } from '../../providers/I18nProvider'
 import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
 
+// Import from main project's IndexedDB
+const loadBedSizeFromDB = async () => {
+  try {
+    const { blueprintTemplateDB } = await import('@/lib/indexdb/blueprint-template')
+    const bedSize = await blueprintTemplateDB.getBedSize()
+    return bedSize
+  } catch (error) {
+    console.error('Failed to load bed size from IndexedDB:', error)
+    return null
+  }
+}
+
 interface BedSizeInputProps {
   onSizeChange: (width: number, length: number) => void
   defaultWidth?: number
@@ -22,6 +34,7 @@ export function BedSizeInput({
   // Store the actual values in cm (internal representation)
   const [widthCm, setWidthCm] = useState(defaultWidth)
   const [lengthCm, setLengthCm] = useState(defaultLength)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Display values in current unit
   const [width, setWidth] = useState(0)
@@ -92,8 +105,25 @@ export function BedSizeInput({
     }
   }
 
+  // Load bed size from IndexedDB on mount
+  useEffect(() => {
+    const loadSavedBedSize = async () => {
+      const savedBedSize = await loadBedSizeFromDB()
+      if (savedBedSize && savedBedSize.width > 0 && savedBedSize.length > 0) {
+        setWidthCm(savedBedSize.width)
+        setLengthCm(savedBedSize.length)
+        // Notify parent component
+        onSizeChange(savedBedSize.width, savedBedSize.length)
+      }
+      setIsInitialized(true)
+    }
+    loadSavedBedSize()
+  }, []) // Run only on mount
+
   // Initialize and listen to unit changes
   useEffect(() => {
+    if (!isInitialized) return // Wait for IndexedDB load
+
     // Get current unit from Configuration
     const unit = Configuration.getStringValue(configDimUnit)
     setCurrentUnit(unit)
@@ -130,7 +160,7 @@ export function BedSizeInput({
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('dimensionUnitChanged', handleUnitChange)
     }
-  }, [widthCm, lengthCm])
+  }, [widthCm, lengthCm, isInitialized])
 
   const handleSizeChange = (field: 'width' | 'length', value: number) => {
     // Update display value

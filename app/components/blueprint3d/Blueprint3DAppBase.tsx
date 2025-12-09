@@ -179,15 +179,38 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
     })
 
-    // Load default floorplan
-    // Use DefaultFloorplan for generator mode (empty room), ExampleFloorplan for normal mode
-    const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
-    blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
+    // Load floorplan from IndexedDB (for generator mode) or use default
+    const loadInitialFloorplan = async () => {
+      try {
+        if (mode === 'generator') {
+          // Try to load template from IndexedDB first
+          const { blueprintTemplateDB } = await import('@/lib/indexdb/blueprint-template')
+          const savedTemplate = await blueprintTemplateDB.getTemplate()
+
+          if (savedTemplate) {
+            console.log('[Blueprint3DAppBase] Loading template from IndexedDB:', savedTemplate)
+            blueprint3d.model.loadSerialized(JSON.stringify(savedTemplate))
+            return
+          }
+        }
+
+        // Fallback to default templates
+        const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
+        blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
+      } catch (error) {
+        console.error('[Blueprint3DAppBase] Error loading template from IndexedDB:', error)
+        // Fallback to default templates
+        const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
+        blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
+      }
+    }
+
+    loadInitialFloorplan()
 
     return () => {
       // Cleanup if needed
     }
-  }, [getWheelZoomEnabled, tItems])
+  }, [getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
 
   // Update wheel zoom setting when it changes
   useEffect(() => {
