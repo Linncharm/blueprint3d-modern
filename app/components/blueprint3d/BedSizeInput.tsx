@@ -8,7 +8,7 @@ import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
 // Import from main project's IndexedDB
 const loadBedSizeFromDB = async () => {
   try {
-    const { blueprintTemplateDB } = await import('@/lib/indexdb/blueprint-template')
+    const { blueprintTemplateDB } = await import('@blueprint3d/indexdb/blueprint-template')
     const bedSize = await blueprintTemplateDB.getBedSize()
     return bedSize
   } catch (error) {
@@ -198,7 +198,12 @@ export function BedSizeInput({
         <div className="bg-primary/90 px-4 py-3 border-b border-primary/30 rounded-t-lg">
           <h3 className="font-semibold text-primary-foreground flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8h16M4 16h16"
+              />
             </svg>
             {t('bedDimensions')}
           </h3>
@@ -233,7 +238,12 @@ export function BedSizeInput({
           <div className="mt-4 pt-3 border-t border-border/50">
             <small className="text-muted-foreground text-xs flex items-center gap-1">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               {t('measurementsIn')} {getUnitLabel(currentUnit)}
             </small>

@@ -197,19 +197,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
     })
 
-    // Load floorplan from IndexedDB (for generator mode) or use default
+    // Load floorplan from IndexedDB or use default
     const loadInitialFloorplan = async () => {
       try {
-        if (mode === 'generator') {
-          // Try to load template from IndexedDB first
-          const { blueprintTemplateDB } = await import('@/lib/indexdb/blueprint-template')
-          const savedTemplate = await blueprintTemplateDB.getTemplate()
+        // Try to load template from IndexedDB first (for all modes)
+        const { blueprintTemplateDB } = await import('@blueprint3d/indexdb/blueprint-template')
+        const savedTemplate = await blueprintTemplateDB.getTemplate()
 
-          if (savedTemplate) {
-            console.log('[Blueprint3DAppBase] Loading template from IndexedDB:', savedTemplate)
-            blueprint3d.model.loadSerialized(JSON.stringify(savedTemplate))
-            return
-          }
+        if (savedTemplate) {
+          console.log('[Blueprint3DAppBase] Loading template from IndexedDB:', savedTemplate)
+          blueprint3d.model.loadSerialized(JSON.stringify(savedTemplate))
+          return
         }
 
         // Fallback to default templates
@@ -318,12 +316,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [])
 
-  const handleViewChange = useCallback((mode: '2d' | '3d') => {
-    if (!blueprint3dRef.current) return
-    blueprint3dRef.current.three.setViewMode(mode)
-    setViewMode(mode)
-    onViewModeChange?.(mode)
-  }, [onViewModeChange])
+  const handleViewChange = useCallback(
+    (mode: '2d' | '3d') => {
+      if (!blueprint3dRef.current) return
+      blueprint3dRef.current.three.setViewMode(mode)
+      setViewMode(mode)
+      onViewModeChange?.(mode)
+    },
+    [onViewModeChange]
+  )
 
   // Fullscreen toggle
   const handleFullscreenToggle = useCallback(() => {
@@ -648,7 +649,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               size="icon"
               className={cn(
                 'gradient-background text-primary-foreground rounded-full shadow-lg transition-all duration-300',
-                isSidebarCollapsed ? 'opacity-100 scale-100' : 'opacity-0 scale-0 pointer-events-none'
+                isSidebarCollapsed
+                  ? 'opacity-100 scale-100'
+                  : 'opacity-0 scale-0 pointer-events-none'
               )}
               aria-label={t('openSidebar')}
             >
