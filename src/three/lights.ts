@@ -46,11 +46,13 @@ export class Lights {
     const maxLights = QualityManager.getMaxLights()
 
     // 1. Ambient Light (always present) - base illumination
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+    // Increased intensity for brighter overall scene
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
     this.scene.add(this.ambientLight)
 
     // 2. Main Directional Light (always present) - primary light with shadows
     // Warm white color for natural sunlight/window light
+    // Significantly increased intensity for physical lighting
     this.dirLight = new THREE.DirectionalLight(0xfff4e6, 1.5)
     this.dirLight.position.set(10, 20, 10)
     this.dirLight.castShadow = true
@@ -61,7 +63,7 @@ export class Lights {
     // 3. Fill Light 1 (added in MEDIUM+ quality) - soften shadows
     if (maxLights >= 2) {
       // Cool white color for balanced lighting
-      this.fillLight1 = new THREE.DirectionalLight(0xe8f4ff, 0.5)
+      this.fillLight1 = new THREE.DirectionalLight(0xe8f4ff, 1.0)
       this.fillLight1.position.set(-10, 15, -10)
       this.fillLight1.castShadow = false // Fill lights don't cast shadows (performance)
       this.scene.add(this.fillLight1)
@@ -69,7 +71,7 @@ export class Lights {
 
     // 4. Fill Light 2 (added in HIGH/ULTRA quality) - additional fill
     if (maxLights >= 3) {
-      this.fillLight2 = new THREE.DirectionalLight(0xfff4e6, 0.3)
+      this.fillLight2 = new THREE.DirectionalLight(0xfff4e6, 0.6)
       this.fillLight2.position.set(0, 10, -15)
       this.fillLight2.castShadow = false
       this.scene.add(this.fillLight2)
@@ -77,7 +79,7 @@ export class Lights {
 
     // 5. Hemisphere Light (added in ULTRA quality) - sky/ground ambient
     if (maxLights >= 4) {
-      this.hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x888888, 0.5)
+      this.hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x888888, 1.0)
       this.hemisphereLight.position.set(0, this.height, 0)
       this.scene.add(this.hemisphereLight)
     }

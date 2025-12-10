@@ -113,12 +113,13 @@ export class Main {
 
     // Advanced tone mapping for better color grading
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.0
+    this.renderer.toneMappingExposure = 1.0 // Increased for brighter scene
 
     // Shadow configuration
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = qualitySettings.shadowMapType
-    this.renderer.shadowMap.autoUpdate = false // Performance: update shadows only when needed
+    // Enable auto-update for dynamic shadows (items can move)
+    this.renderer.shadowMap.autoUpdate = true
 
     // Color space
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
