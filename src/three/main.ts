@@ -7,6 +7,8 @@ import { Skybox } from './skybox'
 import { Controls } from './controls'
 import { HUD } from './hud'
 import { QualityManager } from './quality-manager'
+import { EnvironmentManager } from './environment'
+import { PostProcessingManager } from './post-processing'
 import type { Model } from '../model/model'
 import type { Scene } from '../model/scene'
 import type { Item } from '../items/item'
@@ -55,6 +57,8 @@ export class Main {
   private saved3DPosition: THREE.Vector3 | null = null
   // @ts-ignore - saved3DRotation is declared but not used, keeping for future use
   private saved3DRotation: { theta: number; phi: number } | null = null
+  private environmentManager!: EnvironmentManager
+  private postProcessing: PostProcessingManager | null = null
 
   constructor(
     model: Model,
@@ -154,6 +158,26 @@ export class Main {
 
     this.floorplan = new FloorplanThree(this.scene.getScene(), this.model.floorplan, this.controls)
 
+    // Initialize environment manager for IBL (Image-Based Lighting)
+    this.environmentManager = new EnvironmentManager(this.scene.getScene(), this.renderer)
+
+    // Load default environment if quality supports it
+    if (QualityManager.isEnvironmentMapEnabled()) {
+      this.environmentManager.loadDefaultEnvironment().catch((err) => {
+        console.error('[Main] Failed to load environment:', err)
+      })
+    }
+
+    // Initialize post-processing pipeline if quality supports it
+    if (QualityManager.isPostProcessingEnabled()) {
+      this.postProcessing = new PostProcessingManager(
+        this.renderer,
+        this.scene.getScene(),
+        this.camera
+      )
+      console.log('[Main] Post-processing enabled')
+    }
+
     this.animate()
 
     this.element.addEventListener('mouseenter', () => {
@@ -188,6 +212,34 @@ export class Main {
 
     // Force shadow map update
     this.renderer.shadowMap.needsUpdate = true
+
+    // Update environment map
+    if (this.environmentManager) {
+      this.environmentManager.updateQuality().catch((err) => {
+        console.error('[Main] Failed to update environment quality:', err)
+      })
+    }
+
+    // Rebuild post-processing pipeline
+    if (QualityManager.isPostProcessingEnabled()) {
+      if (!this.postProcessing) {
+        // Create post-processing if it didn't exist
+        this.postProcessing = new PostProcessingManager(
+          this.renderer,
+          this.scene.getScene(),
+          this.camera
+        )
+        console.log('[Main] Post-processing enabled after quality upgrade')
+      }
+      // Note: PostProcessingManager handles its own quality changes internally
+    } else {
+      if (this.postProcessing) {
+        // Dispose post-processing if quality downgraded
+        this.postProcessing.dispose()
+        this.postProcessing = null
+        console.log('[Main] Post-processing disabled after quality downgrade')
+      }
+    }
 
     // Mark for re-render
     this.needsUpdate()
@@ -341,10 +393,21 @@ export class Main {
   private render(): void {
     this.spin()
     if (this.shouldRender()) {
-      this.renderer.clear()
-      this.renderer.render(this.scene.getScene(), this.camera)
-      this.renderer.clearDepth()
-      this.renderer.render(this.hud.getScene(), this.camera)
+      // Use post-processing if available, otherwise fallback to direct rendering
+      if (this.postProcessing && QualityManager.isPostProcessingEnabled()) {
+        // Render main scene with post-processing
+        this.postProcessing.render()
+
+        // Render HUD on top (without post-processing)
+        this.renderer.clearDepth()
+        this.renderer.render(this.hud.getScene(), this.camera)
+      } else {
+        // Direct rendering (fallback for low quality or if post-processing failed)
+        this.renderer.clear()
+        this.renderer.render(this.scene.getScene(), this.camera)
+        this.renderer.clearDepth()
+        this.renderer.render(this.hud.getScene(), this.camera)
+      }
     }
     this.lastRender = Date.now()
   }
@@ -374,6 +437,12 @@ export class Main {
     this.camera.updateProjectionMatrix()
 
     this.renderer.setSize(this.elementWidth, this.elementHeight)
+
+    // Update post-processing buffers if active
+    if (this.postProcessing) {
+      this.postProcessing.resize(this.elementWidth, this.elementHeight)
+    }
+
     this._needsUpdate = true
   }
 

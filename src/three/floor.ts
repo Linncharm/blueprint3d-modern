@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { QualityManager } from './quality-manager'
 import type { Room } from '../model/room'
 
 export class Floor {
@@ -36,12 +37,18 @@ export class Floor {
     floorTexture.wrapT = THREE.RepeatWrapping
     floorTexture.repeat.set(1, 1)
     floorTexture.colorSpace = THREE.SRGBColorSpace
-    const floorMaterialTop = new THREE.MeshPhongMaterial({
+
+    // Apply quality-based anisotropic filtering for sharper textures
+    floorTexture.anisotropy = QualityManager.getAnisotropy()
+
+    // Upgrade to PBR material for realistic floor rendering
+    const floorMaterialTop = new THREE.MeshStandardMaterial({
       map: floorTexture,
       side: THREE.DoubleSide,
-      // ambient: 0xffffff, TODO_Ekki
-      color: 0xffffff, // Changed from 0xcccccc to 0xffffff for brighter floor
-      specular: 0x0a0a0a
+      color: 0xffffff,
+      roughness: 0.7, // Wood/tile floor roughness
+      metalness: 0.0, // Floors are not metallic
+      envMapIntensity: 0.3 // Moderate environment reflections
     })
 
     const textureScale = textureSettings.scale

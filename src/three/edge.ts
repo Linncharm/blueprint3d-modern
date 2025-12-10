@@ -157,20 +157,22 @@ export class Edge {
   }
 
   private updatePlanes(): void {
-    const wallMaterial = new THREE.MeshBasicMaterial({
+    // Upgrade to PBR materials for realistic rendering
+    const wallMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
-      // ambientColor: 0xffffff, TODO_Ekki
-      //ambient: this.wall.color,
       side: THREE.FrontSide,
       map: this.texture,
-      // lightMap: this.lightMap TODO_Ekki
-      toneMapped: false // Bypass tone mapping for brighter walls
+      roughness: 0.85, // Slightly rough wall surface
+      metalness: 0.0, // Walls are not metallic
+      envMapIntensity: 0.2 // Subtle environment reflections
     })
 
-    const fillerMaterial = new THREE.MeshBasicMaterial({
+    const fillerMaterial = new THREE.MeshStandardMaterial({
       color: this.fillerColor,
       side: THREE.DoubleSide,
-      toneMapped: false
+      roughness: 0.85,
+      metalness: 0.0,
+      envMapIntensity: 0.15
     })
 
     // exterior plane
@@ -360,10 +362,12 @@ export class Edge {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
     geometry.computeVertexNormals()
 
-    const fillerMaterial = new THREE.MeshBasicMaterial({
+    const fillerMaterial = new THREE.MeshStandardMaterial({
       color: color,
       side: THREE.DoubleSide,
-      toneMapped: false
+      roughness: 0.85,
+      metalness: 0.0,
+      envMapIntensity: 0.15
     })
 
     const filler = new THREE.Mesh(geometry, fillerMaterial)
@@ -378,10 +382,12 @@ export class Edge {
       this.toVec2(edge.interiorStart())
     ]
 
-    const fillerMaterial = new THREE.MeshBasicMaterial({
+    const fillerMaterial = new THREE.MeshStandardMaterial({
       color: color,
       side: side,
-      toneMapped: false
+      roughness: 0.85,
+      metalness: 0.0,
+      envMapIntensity: 0.15
     })
 
     const shape = new THREE.Shape(points)
