@@ -56,6 +56,12 @@ export interface Blueprint3DAppConfig {
   // Fullscreen state (controlled component)
   isFullscreen?: boolean
   onFullscreenToggle?: () => void
+
+  // View mode callback
+  onViewModeChange?: (mode: '2d' | '3d') => void
+
+  // Render additional overlay content in the 3D viewer area
+  renderOverlay?: () => React.ReactNode
 }
 
 interface Blueprint3DAppBaseProps {
@@ -74,7 +80,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     isLanguageOption = true,
     openMyFloorplans = false,
     isFullscreen = false,
-    onFullscreenToggle
+    onFullscreenToggle,
+    onViewModeChange,
+    renderOverlay
   } = config
 
   const i18n = useI18n()
@@ -314,7 +322,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     if (!blueprint3dRef.current) return
     blueprint3dRef.current.three.setViewMode(mode)
     setViewMode(mode)
-  }, [])
+    onViewModeChange?.(mode)
+  }, [onViewModeChange])
 
   // Fullscreen toggle
   const handleFullscreenToggle = useCallback(() => {
@@ -681,6 +690,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                 isFullscreen={isFullscreen}
                 onFullscreenToggle={handleFullscreenToggle}
               />
+              {/* Render custom overlay content */}
+              {renderOverlay && renderOverlay()}
             </>
           )}
 
