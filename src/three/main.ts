@@ -6,6 +6,7 @@ import { Lights } from './lights'
 import { Skybox } from './skybox'
 import { Controls } from './controls'
 import { HUD } from './hud'
+import { QualityManager } from './quality-manager'
 import type { Model } from '../model/model'
 import type { Scene } from '../model/scene'
 import type { Item } from '../items/item'
@@ -84,16 +85,38 @@ export class Main {
   }
 
   private init(): void {
+    // Initialize quality management system
+    QualityManager.initialize()
+
     this.domElement = this.element // Container
     this.camera = new THREE.PerspectiveCamera(45, 1, 1, 10000)
+
+    // Create renderer with enhanced configuration
+    const qualitySettings = QualityManager.getCurrentSettings()
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      preserveDrawingBuffer: true // required to support .toDataURL()
+      preserveDrawingBuffer: true, // required to support .toDataURL()
+      powerPreference: 'high-performance' // prefer dedicated GPU
     })
+
+    // Rendering configuration
     this.renderer.autoClear = false
+    this.renderer.setPixelRatio(qualitySettings.pixelRatio)
+
+    // Enable physical lighting for more realistic results
+    // @ts-ignore - useLegacyLights is available in Three.js r155+
+    this.renderer.useLegacyLights = false
+
+    // Advanced tone mapping for better color grading
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 1.0
+
+    // Shadow configuration
     this.renderer.shadowMap.enabled = true
-    this.renderer.shadowMap.type = THREE.PCFShadowMap // Optimized: PCFShadowMap is faster than PCFSoftShadowMap
-    // Fix color space for proper color saturation (matching legacy behavior)
+    this.renderer.shadowMap.type = qualitySettings.shadowMapType
+    this.renderer.shadowMap.autoUpdate = false // Performance: update shadows only when needed
+
+    // Color space
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
 
     // Get skybox colors from CSS variables (if available)
@@ -142,6 +165,32 @@ export class Main {
     this.element.addEventListener('click', () => {
       this.hasClicked = true
     })
+
+    // Quality management: listen for quality changes
+    window.addEventListener('quality-changed', this.onQualityChanged.bind(this))
+
+    // Start performance monitoring
+    QualityManager.startPerformanceMonitoring()
+  }
+
+  /**
+   * Handle quality level changes
+   */
+  private onQualityChanged(event: CustomEvent): void {
+    const newLevel = event.detail
+    console.log(`[Main] Quality changed to: ${newLevel}`)
+
+    const qualitySettings = QualityManager.getCurrentSettings()
+
+    // Update renderer settings
+    this.renderer.setPixelRatio(qualitySettings.pixelRatio)
+    this.renderer.shadowMap.type = qualitySettings.shadowMapType
+
+    // Force shadow map update
+    this.renderer.shadowMap.needsUpdate = true
+
+    // Mark for re-render
+    this.needsUpdate()
   }
 
   /**

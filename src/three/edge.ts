@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { Utils } from '../core/utils'
+import { MaterialLibrary } from './materials'
 import type { HalfEdge } from '../model/half_edge'
 import type { Controls } from './controls'
 
