@@ -3,14 +3,14 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
-import { Blueprint3DMode, getModeConfig, parseMode } from '@blueprint3d/config/modes'
+import { Blueprint3DMode, getModeConfig } from '@blueprint3d/config/modes'
 import { useI18n } from '../../providers/I18nProvider'
 import { Button } from '@/components/ui/button'
 
 interface ItemsListProps {
   onItemSelect: (item: { name: string; model: string; type: string }) => void
-  /** Application mode */
-  mode?: Blueprint3DMode
+  /** Application mode (string or enum) */
+  mode?: Blueprint3DMode | string
 }
 
 const CATEGORY_KEYS = {
@@ -34,16 +34,22 @@ export function ItemsList({ onItemSelect, mode = Blueprint3DMode.NORMAL }: Items
   const t = i18n.createT('items')
 
   // Get mode configuration
-  const modeConfig = useMemo(() => getModeConfig(parseMode(mode)), [mode])
+  const modeConfig = useMemo(() => getModeConfig(mode), [mode])
 
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all')
 
   // Build categories with translated labels based on allowed categories
+  // Always add 'all' as the first category (UI filter, not a real category)
   const categories = useMemo(() => {
-    return modeConfig.allowedCategories.map((value) => ({
+    const allCategory = {
+      value: 'all' as const,
+      label: t(`categories.${CATEGORY_KEYS.all}`)
+    }
+    const specificCategories = modeConfig.allowedCategories.map((value) => ({
       value,
       label: t(`categories.${CATEGORY_KEYS[value]}`)
     }))
+    return [allCategory, ...specificCategories]
   }, [t, modeConfig.allowedCategories])
 
   // Filter items based on selected category and mode

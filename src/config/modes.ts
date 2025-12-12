@@ -24,8 +24,8 @@ export enum Blueprint3DMode {
 export interface ModeConfig {
   /** Default floorplan template to load */
   defaultTemplate: Blueprint3DTemplate
-  /** Allowed item categories in this mode */
-  allowedCategories: Array<ItemCategory | 'all'>
+  /** Allowed item categories in this mode (excluding 'all' - that's a UI filter) */
+  allowedCategories: Array<ItemCategory>
 }
 
 /**
@@ -35,7 +35,6 @@ export const MODE_CONFIGS: Record<Blueprint3DMode, ModeConfig> = {
   [Blueprint3DMode.NORMAL]: {
     defaultTemplate: ExampleFloorplan as Blueprint3DTemplate,
     allowedCategories: [
-      'all',
       'bed',
       'drawer',
       'wardrobe',
@@ -52,25 +51,25 @@ export const MODE_CONFIGS: Record<Blueprint3DMode, ModeConfig> = {
   },
   [Blueprint3DMode.GENERATOR]: {
     defaultTemplate: DefaultFloorplan as Blueprint3DTemplate,
-    allowedCategories: ['all', 'door', 'window']
+    allowedCategories: ['door', 'window']
   },
   [Blueprint3DMode.WEALTH_CORNER]: {
     defaultTemplate: DefaultFloorplan as Blueprint3DTemplate,
-    allowedCategories: ['all', 'door']
+    allowedCategories: ['door'] // Only doors for wealth corner calculation
   },
   [Blueprint3DMode.BATHROOM]: {
     defaultTemplate: DefaultFloorplan as Blueprint3DTemplate,
     // TODO: Add bathroom-specific categories when items are available
-    allowedCategories: ['all', 'door', 'window']
+    allowedCategories: ['door', 'window']
   },
   [Blueprint3DMode.KITCHEN]: {
     defaultTemplate: DefaultFloorplan as Blueprint3DTemplate,
     // TODO: Add kitchen-specific categories when items are available
-    allowedCategories: ['all', 'door', 'window', 'table', 'chair', 'storage']
+    allowedCategories: ['door', 'window', 'table', 'chair', 'storage']
   },
   [Blueprint3DMode.BEDROOM]: {
     defaultTemplate: DefaultFloorplan as Blueprint3DTemplate,
-    allowedCategories: ['all', 'bed', 'drawer', 'wardrobe', 'light', 'door', 'window']
+    allowedCategories: ['bed', 'drawer', 'wardrobe', 'light', 'door', 'window']
   }
 }
 

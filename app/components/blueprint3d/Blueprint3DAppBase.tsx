@@ -27,6 +27,7 @@ import { Menu } from 'lucide-react'
 import type { Item } from '@blueprint3d/items/item'
 import type { HalfEdge } from '@blueprint3d/model/half_edge'
 import type { Room } from '@blueprint3d/model/room'
+import { Blueprint3DMode } from '@blueprint3d/config/modes'
 
 export interface Blueprint3DAppConfig {
   // Authentication related (deprecated - no longer required)
@@ -73,7 +74,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     // onAuthRequired,
     enableWheelZoom = true,
     ensureUserSession,
-    mode = 'normal',
+    mode = Blueprint3DMode.NORMAL,
     onBlueprint3DReady,
     onBedSizeChange,
     isLanguageOption = true,
@@ -743,7 +744,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           className="w-full h-full overflow-y-auto p-5"
           style={{ display: activeTab === 'items' ? 'block' : 'none' }}
         >
-          {activeTab === 'items' && <ItemsList onItemSelect={handleItemSelect} mode={mode} />}
+          {activeTab === 'items' && <ItemsList onItemSelect={handleItemSelect} mode={mode as any} />}
         </div>
 
         {/* My Floorplans */}
