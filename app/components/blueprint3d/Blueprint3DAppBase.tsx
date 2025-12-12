@@ -62,6 +62,9 @@ export interface Blueprint3DAppConfig {
 
   // Render additional overlay content in the 3D viewer area
   renderOverlay?: () => React.ReactNode
+
+  // Enable continuous rotation even after user interaction
+  alwaysSpin?: boolean
 }
 
 interface Blueprint3DAppBaseProps {
@@ -82,7 +85,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     isFullscreen = false,
     onFullscreenToggle,
     onViewModeChange,
-    renderOverlay
+    renderOverlay,
+    alwaysSpin = false
   } = config
 
   const i18n = useI18n()
@@ -133,7 +137,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       threeElement: '#viewer',
       textureDir: '/models/textures/',
       widget: false,
-      enableWheelZoom: getWheelZoomEnabled()
+      enableWheelZoom: getWheelZoomEnabled(),
+      alwaysSpin
     }
 
     const blueprint3d = new Blueprint3d(opts)

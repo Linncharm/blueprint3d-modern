@@ -20,6 +20,7 @@ interface MainOptions {
   clickPan?: boolean
   canMoveFixedItems?: boolean
   enableWheelZoom?: boolean
+  alwaysSpin?: boolean // Keep spinning even after user interaction
 }
 
 export class Main {
@@ -74,7 +75,8 @@ export class Main {
       spinSpeed: 0.00002,
       clickPan: true,
       canMoveFixedItems: false,
-      enableWheelZoom: true
+      enableWheelZoom: true,
+      alwaysSpin: false
     }
 
     // override with manually set options
@@ -231,7 +233,10 @@ export class Main {
   }
 
   private spin(): void {
-    if (this.options.spin && !this.mouseOver && !this.hasClicked) {
+    // If alwaysSpin is enabled, spin continuously regardless of user interaction
+    const shouldSpin = this.options.spin && (this.options.alwaysSpin || (!this.mouseOver && !this.hasClicked))
+
+    if (shouldSpin) {
       const theta = 2 * Math.PI * this.options.spinSpeed * (Date.now() - this.lastRender)
       this.controls.rotateLeft(theta)
       this.controls.update()

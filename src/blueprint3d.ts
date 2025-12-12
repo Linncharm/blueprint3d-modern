@@ -18,6 +18,9 @@ export interface Options {
 
   /** Enable/disable wheel zoom (default: true). Set to false for logged-out users to allow page scroll. */
   enableWheelZoom?: boolean
+
+  /** Enable continuous rotation even after user interaction (default: false). */
+  alwaysSpin?: boolean
 }
 
 /** Blueprint3D core application. */
@@ -34,7 +37,8 @@ export class Blueprint3d {
   constructor(options: Options) {
     this.model = new Model(options.textureDir || '')
     this.three = new Main(this.model, options.threeElement || document.body, undefined, {
-      enableWheelZoom: options.enableWheelZoom ?? true
+      enableWheelZoom: options.enableWheelZoom ?? true,
+      alwaysSpin: options.alwaysSpin ?? false
     })
 
     if (!options.widget) {
