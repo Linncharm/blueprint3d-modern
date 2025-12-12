@@ -3,69 +3,63 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
+import { Blueprint3DMode, getModeConfig, parseMode } from '@blueprint3d/config/modes'
 import { useI18n } from '../../providers/I18nProvider'
 import { Button } from '@/components/ui/button'
 
 interface ItemsListProps {
   onItemSelect: (item: { name: string; model: string; type: string }) => void
-  /** Generator mode: only show doors and windows */
-  mode?: 'normal' | 'generator'
+  /** Application mode */
+  mode?: Blueprint3DMode
 }
 
 const CATEGORY_KEYS = {
-  'all': 'all',
-  'bed': 'bed',
-  'drawer': 'drawer',
-  'wardrobe': 'wardrobe',
-  'light': 'light',
-  'storage': 'storage',
-  'table': 'table',
-  'chair': 'chair',
-  'sofa': 'sofa',
-  'armchair': 'armchair',
-  'stool': 'stool',
-  'door': 'door',
-  'window': 'window'
+  all: 'all',
+  bed: 'bed',
+  drawer: 'drawer',
+  wardrobe: 'wardrobe',
+  light: 'light',
+  storage: 'storage',
+  table: 'table',
+  chair: 'chair',
+  sofa: 'sofa',
+  armchair: 'armchair',
+  stool: 'stool',
+  door: 'door',
+  window: 'window'
 } as const
 
-const CATEGORY_VALUES: Array<ItemCategory | 'all'> = ['all', 'bed', 'drawer', 'wardrobe', 'light', 'storage', 'table', 'chair', 'sofa', 'armchair', 'stool', 'door', 'window']
-
-const GENERATOR_MODE_CATEGORY_VALUES: Array<ItemCategory | 'all'> = ['all', 'door', 'window']
-
-export function ItemsList({ onItemSelect, mode = 'normal' }: ItemsListProps) {
+export function ItemsList({ onItemSelect, mode = Blueprint3DMode.NORMAL }: ItemsListProps) {
   const i18n = useI18n()
   const t = i18n.createT('items')
 
-  // In generator mode, default to 'all' which will show doors and windows
+  // Get mode configuration
+  const modeConfig = useMemo(() => getModeConfig(parseMode(mode)), [mode])
+
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all')
 
-  // Determine which categories to show based on mode
-  const categoryValues = mode === 'generator' ? GENERATOR_MODE_CATEGORY_VALUES : CATEGORY_VALUES
-
-  // Build categories with translated labels
+  // Build categories with translated labels based on allowed categories
   const categories = useMemo(() => {
-    return categoryValues.map(value => ({
+    return modeConfig.allowedCategories.map((value) => ({
       value,
       label: t(`categories.${CATEGORY_KEYS[value]}`)
     }))
-  }, [t])
+  }, [t, modeConfig.allowedCategories])
 
   // Filter items based on selected category and mode
   const filteredItems = useMemo(() => {
     let items = ITEMS
 
-    // In generator mode, only show doors and windows
-    if (mode === 'generator') {
-      items = items.filter(item => item.category === 'door' || item.category === 'window')
-    }
+    // Filter by allowed categories in mode config
+    items = items.filter((item) => modeConfig.allowedCategories.includes(item.category))
 
     // Then apply category filter
     if (selectedCategory !== 'all') {
-      items = items.filter(item => item.category === selectedCategory)
+      items = items.filter((item) => item.category === selectedCategory)
     }
 
     return items
-  }, [selectedCategory, mode])
+  }, [selectedCategory, modeConfig.allowedCategories])
 
   return (
     <div className="space-y-4">

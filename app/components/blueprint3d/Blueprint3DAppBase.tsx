@@ -17,7 +17,6 @@ import { MyFloorplans } from './MyFloorplans'
 import { SaveFloorplanDialog } from './SaveFloorplanDialog'
 import { getStorageService } from '@blueprint3d/services/storage'
 import DefaultFloorplan from '@blueprint3d/templates/default.json'
-import ExampleFloorplan from '@blueprint3d/templates/example.json'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
@@ -38,8 +37,8 @@ export interface Blueprint3DAppConfig {
   // Session management for anonymous users
   ensureUserSession?: () => Promise<boolean>
 
-  // Mode: 'normal' shows all items, 'generator' shows only doors and windows
-  mode?: 'normal' | 'generator'
+  // Mode: application mode (e.g., 'normal', 'generator', 'wealth-corner')
+  mode?: string
 
   // Blueprint3D instance callback
   onBlueprint3DReady?: (blueprint3d: Blueprint3d) => void
@@ -210,14 +209,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           return
         }
 
-        // Fallback to default templates
-        const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
-        blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
+        // Fallback to mode-specific default template
+        const { getModeConfig, parseMode } = await import('@blueprint3d/config/modes')
+        const modeConfig = getModeConfig(parseMode(mode))
+        blueprint3d.model.loadSerialized(JSON.stringify(modeConfig.defaultTemplate))
       } catch (error) {
-        console.error('[Blueprint3DAppBase] Error loading template from IndexedDB:', error)
-        // Fallback to default templates
-        const initialFloorplan = mode === 'generator' ? DefaultFloorplan : ExampleFloorplan
-        blueprint3d.model.loadSerialized(JSON.stringify(initialFloorplan))
+        console.error('[Blueprint3DAppBase] Error loading template:', error)
+        // Fallback to hardcoded default
+        blueprint3d.model.loadSerialized(JSON.stringify(DefaultFloorplan))
       }
     }
 
